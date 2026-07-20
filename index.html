@@ -5,171 +5,585 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Starter Golf - Planning & Croisements</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 15px; background-color: #f0f2f5; color: #333; }
-        h1 { text-align: center; color: #1a252f; font-size: 22px; }
-        form { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
-        button { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
-        button:hover { background-color: #218838; }
-        .table-wrapper { overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { border: 1px solid #dee2e6; padding: 8px 6px; text-align: center; font-size: 13px; }
-        th { background-color: #007bff; color: white; font-weight: 600; }
-        .conflict { background-color: #ffcdd2 !important; color: #b71c1c !important; font-weight: bold; border: 2px solid #e53935; }
-        .type-badge { font-size: 11px; padding: 2px 4px; border-radius: 4px; background: #e9ecef; }
+        :root {
+            --primary-color: #1b4332;
+            --secondary-color: #2d6a4f;
+            --accent-color: #52b788;
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --border-color: #dee2e6;
+            --conflict-bg: #ffcdd2;
+            --conflict-text: #b71c1c;
+            --conflict-border: #e53935;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+            line-height: 1.4;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            font-size: 14px;
+            color: #d8f3dc;
+        }
+
+        .controls {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .date-picker-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .date-picker-group label {
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .date-picker-group input[type="date"] {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        .legend-box.conflict-box {
+            background-color: var(--conflict-bg);
+            border: 1px solid var(--conflict-border);
+        }
+
+        .legend-box.free-box {
+            background-color: #f8f9fa;
+            border: 1px solid var(--border-color);
+        }
+
+        .table-wrapper {
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow-x: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px;
+            font-size: 12px;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 8px 6px;
+            text-align: center;
+        }
+
+        th {
+            background-color: var(--secondary-color);
+            color: white;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        th.section-fr { background-color: #2d6a4f; }
+        th.section-it { background-color: #1d3557; }
+        th.section-return { background-color: #6a040f; }
+
+        tr:nth-child(even) {
+            background-color: #fcfcfc;
+        }
+
+        .time-col {
+            font-weight: bold;
+            font-size: 13px;
+            background-color: #e9ecef !important;
+            width: 70px;
+        }
+
+        .players-select, .type-select {
+            padding: 4px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            font-size: 12px;
+            background-color: white;
+        }
+
+        .type-select {
+            font-weight: bold;
+        }
+
+        .btn-action {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .btn-add { color: #28a745; }
+        .btn-add:hover { background-color: #e8f5e9; }
+        .btn-remove { color: #dc3545; }
+        .btn-remove:hover { background-color: #ffebee; }
+
+        .cell-passage {
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .cell-empty {
+            color: #ccc;
+            background-color: #f8f9fa;
+        }
+
+        .conflict {
+            background-color: var(--conflict-bg) !important;
+            color: var(--conflict-text) !important;
+            font-weight: bold;
+            border: 2px solid var(--conflict-border) !important;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.85; }
+            100% { opacity: 1; }
+        }
+
+        .print-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .print-btn:hover {
+            background-color: var(--primary-color);
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .controls, .btn-action { display: none !important; }
+            .table-wrapper { box-shadow: none; }
+            table { min-width: 100%; font-size: 10px; }
+            th { background-color: #333 !important; color: white !important; -webkit-print-color-adjust: exact; }
+            .conflict { background-color: #ffcdd2 !important; -webkit-print-color-adjust: exact; }
+        }
     </style>
 </head>
 <body>
 
-<h1>Starter Golf - Planning</h1>
+<header>
+    <h1>Starter Golf - Planning & Détection de Croisements</h1>
+    <p>Gestion des départs (08h00 - 19h00) & Suivi des passages Franco-Italiens</p>
+</header>
 
-<form id="planningForm">
-    <div class="form-group">
-        <label for="firstDeparture">Heure du 1er départ</label>
-        <input type="time" id="firstDeparture" required value="08:00">
-    </div>
-    
-    <div class="form-group">
-        <label for="nbDepartures">Nombre de départs</label>
-        <input type="number" id="nbDepartures" required value="12" min="1" max="60">
+<div class="controls">
+    <div class="date-picker-group">
+        <label for="currentDate">Journée du :</label>
+        <input type="date" id="currentDate">
     </div>
 
-    <div class="form-group">
-        <label for="intervalMinutes">Intervalle entre départs (min)</label>
-        <input type="number" id="intervalMinutes" required value="10" min="1">
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-box free-box"></div>
+            <span>Créneau Libre / Standard</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-box conflict-box"></div>
+            <span>Risque de Croisement / Conflit</span>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label for="defaultType">Option de parcours par défaut</label>
-        <select id="defaultType">
-            <option value="18">18 Trous</option>
-            <option value="9">9 Trous</option>
-            <option value="alt">Alterné (1 sur 2 fait 9 trous)</option>
-        </select>
-    </div>
-    
-    <button type="submit">Calculer et Détecter les Conflits</button>
-</form>
+    <button class="print-btn" onclick="window.print()">
+        🖨️ Imprimer le Planning
+    </button>
+</div>
 
 <div class="table-wrapper">
-    <div id="results"></div>
+    <table id="planningTable">
+        <thead>
+            <tr>
+                <th rowspan="2" class="time-col">Départ</th>
+                <th rowspan="2">Joueurs</th>
+                <th rowspan="2">Formule de Parcours</th>
+                <th colspan="7" class="section-fr">Parcours France (Aller)</th>
+                <th class="section-it">Italie</th>
+                <th colspan="2" class="section-return">Retour France</th>
+                <th rowspan="2">Actions</th>
+            </tr>
+            <tr>
+                <th>G1</th>
+                <th>G2</th>
+                <th>G3</th>
+                <th>G4</th>
+                <th>G5</th>
+                <th>G6</th>
+                <th>G7</th>
+                <th>9 Trous IT</th>
+                <th>G8 (17e)</th>
+                <th>G9 (18e)</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- Généré dynamiquement en JavaScript -->
+        </tbody>
+    </table>
 </div>
 
 <script>
-    document.getElementById('planningForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const firstDeparture = document.getElementById('firstDeparture').value;
-        const nbDepartures = parseInt(document.getElementById('nbDepartures').value);
-        const intervalMinutes = parseInt(document.getElementById('intervalMinutes').value);
-        const defaultType = document.getElementById('defaultType').value;
-        
-        if (!firstDeparture || nbDepartures <= 0) return;
-        
-        const [hours, minutes] = firstDeparture.split(':').map(Number);
-        let baseDate = new Date();
-        baseDate.setHours(hours, minutes, 0, 0);
-        
-        let parties = [];
-        
-        // 1. Génération des horaires pour chaque partie
-        for (let d = 0; d < nbDepartures; d++) {
-            let startTime = new Date(baseDate.getTime() + d * intervalMinutes * 60000);
-            
-            let is18Holes = true;
-            if (defaultType === '9') is18Holes = false;
-            if (defaultType === 'alt' && d % 2 !== 0) is18Holes = false;
+    // Configuration des constantes du parcours
+    const START_HOUR = 8;
+    const END_HOUR = 19;
+    const INTERVAL_MINUTES = 10;
+    const TIME_PER_HOLE = 10; // minutes par trou
 
-            let holesCount = is18Holes ? 18 : 9;
-            let holeTimes = [];
-            let currentTime = new Date(startTime);
-            
-            for (let h = 1; h <= holesCount; h++) {
-                const hStr = String(currentTime.getHours()).padStart(2, '0');
-                const mStr = String(currentTime.getMinutes()).padStart(2, '0');
-                holeTimes.push({ hole: h, timeStr: `${hStr}:${mStr}`, timeValue: currentTime.getTime() });
-                
-                // 10 minutes par trou
-                currentTime.setMinutes(currentTime.getMinutes() + 10);
-            }
-            
-            parties.push({
-                id: d + 1,
-                startTimeStr: String(startTime.getHours()).padStart(2, '0') + ':' + String(startTime.getMinutes()).padStart(2, '0'),
-                is18Holes: is18Holes,
-                holeTimes: holeTimes
-            });
-        }
-        
-        // 2. Détection des conflits au Trou 8 (Français) / Trou 17
-        // On recense toutes les arrivées sur le trou 8 et le trou 17
-        let timeMap8 = {};
-        let timeMap17 = {};
-        
-        parties.forEach((p, pIndex) => {
-            p.holeTimes.forEach(ht => {
-                if (ht.hole === 8) {
-                    if (!timeMap8[ht.timeStr]) timeMap8[ht.timeStr] = [];
-                    timeMap8[ht.timeStr].push(pIndex);
-                }
-                if (ht.hole === 17) {
-                    if (!timeMap17[ht.timeStr]) timeMap17[ht.timeStr] = [];
-                    timeMap17[ht.timeStr].push(pIndex);
-                }
-            });
-        });
+    // Stockage de l'état des départs par date
+    // Structure: { "YYYY-MM-DD": { "08:00": { players: 2, type: "18_FR_IT" } } }
+    let scheduleData = {};
 
-        // 3. Construction du tableau
-        let html = '<table><thead><tr><th>Dép.</th><th>Type</th>';
-        for (let h = 1; h <= 18; h++) {
-            html += `<th>T${h}</th>`;
-        }
-        html += '</tr></thead><tbody>';
+    document.addEventListener('DOMContentLoaded', () => {
+        const dateInput = document.getElementById('currentDate');
         
-        parties.forEach((p, pIndex) => {
-            html += `<tr>`;
-            html += `<td><strong>${p.startTimeStr}</strong></td>`;
-            html += `<td><span class="type-badge">${p.is18Holes ? '18T' : '9T'}</span></td>`;
-            
-            for (let h = 1; h <= 18; h++) {
-                let ht = p.holeTimes.find(item => item.hole === h);
-                
-                if (!ht) {
-                    html += `<td style="background:#f8f9fa; color:#ccc;">-</td>`;
-                } else {
-                    let hasConflict = false;
-                    
-                    // Vérification croisement sur le Trou 8 ou Trou 17 avec une autre partie
-                    if (h === 8 && timeMap8[ht.timeStr] && timeMap8[ht.timeStr].length > 1) {
-                        hasConflict = true;
-                    }
-                    if (h === 17 && timeMap17[ht.timeStr] && timeMap17[ht.timeStr].length > 1) {
-                        hasConflict = true;
-                    }
+        // Initialisation à la date d'aujourd'hui
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
 
-                    // Croisement si une partie arrive au Trou 17 en même temps qu'une autre au Trou 8
-                    if (h === 8 && timeMap17[ht.timeStr] && timeMap17[ht.timeStr].length > 0) {
-                        hasConflict = true;
-                    }
-                    if (h === 17 && timeMap8[ht.timeStr] && timeMap8[ht.timeStr].length > 0) {
-                        hasConflict = true;
-                    }
+        // Écouteur de changement de date
+        dateInput.addEventListener('change', renderPlanning);
 
-                    if (hasConflict) {
-                        html += `<td class="conflict" title="Conflit de croisement à ${ht.timeStr}">${ht.timeStr}</td>`;
-                    } else {
-                        html += `<td>${ht.timeStr}</td>`;
-                    }
-                }
-            }
-            html += `</tr>`;
-        });
-        
-        html += '</tbody></table>';
-        document.getElementById('results').innerHTML = html;
+        // Premier rendu
+        renderPlanning();
     });
+
+    // Génération de tous les créneaux horaires de 08:00 à 19:00
+    function generateTimeSlots() {
+        const slots = [];
+        for (let h = START_HOUR; h <= END_HOUR; h++) {
+            for (let m = 0; m < 60; m += INTERVAL_MINUTES) {
+                if (h === END_HOUR && m > 0) break; // Arrêt à 19:00 exact
+                const hStr = String(h).padStart(2, '0');
+                const mStr = String(m).padStart(2, '0');
+                slots.push(`${hStr}:${mStr}`);
+            }
+        }
+        return slots;
+    }
+
+    // Calcul des heures de passage pour une partie donnée
+    function calculatePassages(startTimeStr, type) {
+        if (!type || type === 'NONE') return null;
+
+        const [hours, minutes] = startTimeStr.split(':').map(Number);
+        let current = new Date();
+        current.setHours(hours, minutes, 0, 0);
+
+        const addMinutes = (date, mins) => new Date(date.getTime() + mins * 60000);
+        const formatTime = (date) => {
+            return String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+        };
+
+        let passages = {
+            g1: '', g2: '', g3: '', g4: '', g5: '', g6: '', g7: '',
+            it: '',
+            g8: '', g9: ''
+        };
+
+        if (type === '9_FR') {
+            // 9 Trous France uniquement (Green 1 à 9)
+            let t = current;
+            passages.g1 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g3 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g4 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g5 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g6 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g7 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g8 = formatTime(t = addMinutes(t, TIME_PER_HOLE)); // 8e trou
+            passages.g9 = formatTime(t = addMinutes(t, TIME_PER_HOLE)); // 9e trou
+        } 
+        else if (type === '18_FR_IT') {
+            // 7 Trous FR -> 9 Trous IT -> 2 Trous FR (Green 8 et 9)
+            let t = current;
+            passages.g1 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g3 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g4 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g5 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g6 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g7 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            
+            // Passage en Italie (9 trous = 90 min)
+            let startIT = t;
+            let endIT = addMinutes(startIT, 90);
+            passages.it = `${formatTime(startIT)}-${formatTime(endIT)}`;
+            
+            // Retour en France sur les Trous 8 (17e) et 9 (18e)
+            t = endIT;
+            passages.g8 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g9 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+        }
+        else if (type === '18_FR') {
+            // 18 Trous 100% France (2 fois 9 trous)
+            let t = current;
+            // 1er Tour (T1 à T7)
+            passages.g1 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g3 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g4 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g5 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g6 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            passages.g7 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            
+            // Fin du 1er tour
+            let g8_t1 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            let g9_t1 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+
+            // 2e Tour (Repasse sur le parcours) - On affiche la combinaison
+            let g1_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            let g2_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            let g3_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            let g4_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            let g5_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            let g6_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            let g7_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            let g8_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+            let g9_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
+
+            passages.g1 += ` / ${g1_t2}`;
+            passages.g2 += ` / ${g2_t2}`;
+            passages.g3 += ` / ${g3_t2}`;
+            passages.g4 += ` / ${g4_t2}`;
+            passages.g5 += ` / ${g5_t2}`;
+            passages.g6 += ` / ${g6_t2}`;
+            passages.g7 += ` / ${g7_t2}`;
+            passages.it = "100% FR";
+            passages.g8 = `${g8_t1} / ${g8_t2}`;
+            passages.g9 = `${g9_t1} / ${g9_t2}`;
+        }
+
+        return passages;
+    }
+
+    // Détection des conflits sur les zones sensibles (Green 8 / 17e trou)
+    function detectConflicts(allPassages) {
+        const timeMapG8 = {};
+        const conflicts = new Set();
+
+        // Cartographier tous les passages sur le Green 8
+        Object.keys(allPassages).forEach(timeSlot => {
+            const p = allPassages[timeSlot];
+            if (!p) return;
+
+            if (p.g8) {
+                // Si la cellule contient plusieurs heures (ex: 18T FR)
+                const times = p.g8.split(' / ');
+                times.forEach(t => {
+                    if (t) {
+                        timeMapG8[t] = timeMapG8[t] || [];
+                        timeMapG8[t].push(timeSlot);
+                    }
+                });
+            }
+        });
+
+        // Identifier les heures où plus d'une partie est présente au Green 8
+        Object.keys(timeMapG8).forEach(time => {
+            if (timeMapG8[time].length > 1) {
+                timeMapG8[time].forEach(slot => conflicts.add(slot));
+            }
+        });
+
+        return conflicts;
+    }
+
+    // Rendu principal du tableau
+    function renderPlanning() {
+        const dateKey = document.getElementById('currentDate').value;
+        if (!scheduleData[dateKey]) {
+            scheduleData[dateKey] = {};
+        }
+
+        const currentDayData = scheduleData[dateKey];
+        const timeSlots = generateTimeSlots();
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        // Pre-calcul de tous les passages pour la détection de conflit
+        const calculatedPassages = {};
+        timeSlots.forEach(slot => {
+            const entry = currentDayData[slot];
+            if (entry && entry.type && entry.type !== 'NONE') {
+                calculatedPassages[slot] = calculatePassages(slot, entry.type);
+            }
+        });
+
+        const conflictingSlots = detectConflicts(calculatedPassages);
+
+        // Construction du tableau ligne par ligne
+        timeSlots.forEach(slot => {
+            const entry = currentDayData[slot] || { players: 0, type: 'NONE' };
+            const passages = calculatedPassages[slot];
+            const isConflicting = conflictingSlots.has(slot);
+
+            const tr = document.createElement('tr');
+            if (isConflicting) {
+                tr.classList.add('conflict');
+            }
+
+            // Colonne Heure
+            let html = `<td class="time-col">${slot}</td>`;
+
+            // Colonne Joueurs
+            html += `
+                <td>
+                    <select class="players-select" onchange="updateEntry('${dateKey}', '${slot}', 'players', this.value)">
+                        <option value="0" ${entry.players == 0 ? 'selected' : ''}>-</option>
+                        <option value="1" ${entry.players == 1 ? 'selected' : ''}>1 J</option>
+                        <option value="2" ${entry.players == 2 ? 'selected' : ''}>2 J</option>
+                        <option value="3" ${entry.players == 3 ? 'selected' : ''}>3 J</option>
+                        <option value="4" ${entry.players == 4 ? 'selected' : ''}>4 J</option>
+                    </select>
+                </td>
+            `;
+
+            // Colonne Type de parcours
+            html += `
+                <td>
+                    <select class="type-select" onchange="updateEntry('${dateKey}', '${slot}', 'type', this.value)">
+                        <option value="NONE" ${entry.type === 'NONE' ? 'selected' : ''}>Aucun départ</option>
+                        <option value="9_FR" ${entry.type === '9_FR' ? 'selected' : ''}>9T France</option>
+                        <option value="18_FR_IT" ${entry.type === '18_FR_IT' ? 'selected' : ''}>18T Franco-Italien</option>
+                        <option value="18_FR" ${entry.type === '18_FR' ? 'selected' : ''}>18T 100% France</option>
+                    </select>
+                </td>
+            `;
+
+            // Colonnes de passage
+            if (passages) {
+                html += `<td class="cell-passage">${passages.g1}</td>`;
+                html += `<td class="cell-passage">${passages.g2}</td>`;
+                html += `<td class="cell-passage">${passages.g3}</td>`;
+                html += `<td class="cell-passage">${passages.g4}</td>`;
+                html += `<td class="cell-passage">${passages.g5}</td>`;
+                html += `<td class="cell-passage">${passages.g6}</td>`;
+                html += `<td class="cell-passage">${passages.g7}</td>`;
+                html += `<td class="cell-passage">${passages.it}</td>`;
+                html += `<td class="cell-passage ${isConflicting ? 'conflict' : ''}">${passages.g8}</td>`;
+                html += `<td class="cell-passage">${passages.g9}</td>`;
+            } else {
+                for (let i = 0; i < 10; i++) {
+                    html += `<td class="cell-empty">-</td>`;
+                }
+            }
+
+            // Colonne Actions (Boutons + / -)
+            html += `
+                <td>
+                    ${entry.type === 'NONE' 
+                        ? `<button class="btn-action btn-add" title="Ajouter une partie" onclick="quickAdd('${dateKey}', '${slot}')">➕</button>`
+                        : `<button class="btn-action btn-remove" title="Supprimer la partie" onclick="quickRemove('${dateKey}', '${slot}')">❌</button>`
+                    }
+                </td>
+            `;
+
+            tr.innerHTML = html;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Mise à jour de l'état
+    window.updateEntry = function(dateKey, slot, field, value) {
+        if (!scheduleData[dateKey][slot]) {
+            scheduleData[dateKey][slot] = { players: 1, type: '18_FR_IT' };
+        }
+
+        if (field === 'players') {
+            scheduleData[dateKey][slot].players = parseInt(value);
+            if (parseInt(value) > 0 && scheduleData[dateKey][slot].type === 'NONE') {
+                scheduleData[dateKey][slot].type = '18_FR_IT';
+            }
+        } else if (field === 'type') {
+            scheduleData[dateKey][slot].type = value;
+            if (value !== 'NONE' && scheduleData[dateKey][slot].players === 0) {
+                scheduleData[dateKey][slot].players = 2; // Défaut à 2 joueurs
+            }
+        }
+
+        renderPlanning();
+    };
+
+    // Ajout rapide d'une partie
+    window.quickAdd = function(dateKey, slot) {
+        scheduleData[dateKey][slot] = { players: 2, type: '18_FR_IT' };
+        renderPlanning();
+    };
+
+    // Suppression rapide
+    window.quickRemove = function(dateKey, slot) {
+        scheduleData[dateKey][slot] = { players: 0, type: 'NONE' };
+        renderPlanning();
+    };
 </script>
 
 </body>
