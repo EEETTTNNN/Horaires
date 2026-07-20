@@ -3,39 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Starter Golf - Planning</title>
+    <title>Starter Golf - Planning & Croisements</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 20px; background-color: #f0f2f5; }
-        h1 { text-align: center; color: #333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 15px; background-color: #f0f2f5; color: #333; }
+        h1 { text-align: center; color: #1a252f; font-size: 22px; }
         form { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 14px; }
-        th { background-color: #007bff; color: white; }
-        .conflict { background-color: #ffcccc; color: #cc0000; font-weight: bold; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
+        button { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        .table-wrapper { overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th, td { border: 1px solid #dee2e6; padding: 8px 6px; text-align: center; font-size: 13px; }
+        th { background-color: #007bff; color: white; font-weight: 600; }
+        .conflict { background-color: #ffcdd2 !important; color: #b71c1c !important; font-weight: bold; border: 2px solid #e53935; }
+        .type-badge { font-size: 11px; padding: 2px 4px; border-radius: 4px; background: #e9ecef; }
     </style>
 </head>
 <body>
 
-<h1>Planning Starter Golf</h1>
+<h1>Starter Golf - Planning</h1>
 
 <form id="planningForm">
-    <label for="firstDeparture">Heure du 1er départ (ex: 08:00)</label>
-    <input type="time" id="firstDeparture" required value="08:00">
+    <div class="form-group">
+        <label for="firstDeparture">Heure du 1er départ</label>
+        <input type="time" id="firstDeparture" required value="08:00">
+    </div>
     
-    <label for="nbDepartures">Nombre de départs</label>
-    <input type="number" id="nbDepartures" required value="10" min="1" max="50">
+    <div class="form-group">
+        <label for="nbDepartures">Nombre de départs</label>
+        <input type="number" id="nbDepartures" required value="12" min="1" max="60">
+    </div>
 
-    <label for="intervalMinutes">Intervalle entre départs (min)</label>
-    <input type="number" id="intervalMinutes" required value="10" min="1">
+    <div class="form-group">
+        <label for="intervalMinutes">Intervalle entre départs (min)</label>
+        <input type="number" id="intervalMinutes" required value="10" min="1">
+    </div>
+
+    <div class="form-group">
+        <label for="defaultType">Option de parcours par défaut</label>
+        <select id="defaultType">
+            <option value="18">18 Trous</option>
+            <option value="9">9 Trous</option>
+            <option value="alt">Alterné (1 sur 2 fait 9 trous)</option>
+        </select>
+    </div>
     
-    <button type="submit">Générer le planning</button>
+    <button type="submit">Calculer et Détecter les Conflits</button>
 </form>
 
-<div id="results"></div>
+<div class="table-wrapper">
+    <div id="results"></div>
+</div>
 
 <script>
     document.getElementById('planningForm').addEventListener('submit', function(e) {
@@ -44,6 +64,7 @@
         const firstDeparture = document.getElementById('firstDeparture').value;
         const nbDepartures = parseInt(document.getElementById('nbDepartures').value);
         const intervalMinutes = parseInt(document.getElementById('intervalMinutes').value);
+        const defaultType = document.getElementById('defaultType').value;
         
         if (!firstDeparture || nbDepartures <= 0) return;
         
@@ -51,72 +72,100 @@
         let baseDate = new Date();
         baseDate.setHours(hours, minutes, 0, 0);
         
-        // Structure:
-        // Departures = array of objects. each object has an array of hole times [H1, H2, ..., H18]
-        let departures = [];
+        let parties = [];
         
+        // 1. Génération des horaires pour chaque partie
         for (let d = 0; d < nbDepartures; d++) {
-            let depTime = new Date(baseDate.getTime() + d * intervalMinutes * 60000);
+            let startTime = new Date(baseDate.getTime() + d * intervalMinutes * 60000);
+            
+            let is18Holes = true;
+            if (defaultType === '9') is18Holes = false;
+            if (defaultType === 'alt' && d % 2 !== 0) is18Holes = false;
+
+            let holesCount = is18Holes ? 18 : 9;
             let holeTimes = [];
-            let currentHoleTime = new Date(depTime);
+            let currentTime = new Date(startTime);
             
-            for (let h = 1; h <= 18; h++) {
-                const hStr = String(currentHoleTime.getHours()).padStart(2, '0');
-                const mStr = String(currentHoleTime.getMinutes()).padStart(2, '0');
-                holeTimes.push(`${hStr}:${mStr}`);
-                currentHoleTime.setMinutes(currentHoleTime.getMinutes() + 10);
+            for (let h = 1; h <= holesCount; h++) {
+                const hStr = String(currentTime.getHours()).padStart(2, '0');
+                const mStr = String(currentTime.getMinutes()).padStart(2, '0');
+                holeTimes.push({ hole: h, timeStr: `${hStr}:${mStr}`, timeValue: currentTime.getTime() });
+                
+                // 10 minutes par trou
+                currentTime.setMinutes(currentTime.getMinutes() + 10);
             }
-            departures.push(holeTimes);
+            
+            parties.push({
+                id: d + 1,
+                startTimeStr: String(startTime.getHours()).padStart(2, '0') + ':' + String(startTime.getMinutes()).padStart(2, '0'),
+                is18Holes: is18Holes,
+                holeTimes: holeTimes
+            });
         }
         
-        // Check conflicts at French Hole 8 (which is the 8th hole for the 9-hole players, but the 8th hole in France might mean hole 8. Wait! Let me check the user's phrasing exactly: "au trou numéro 8 français. Donc le 17 du 18 trous.")
-        // So I need to check Hole 8 for 9-hole players and Hole 8 in France (which is the 17th hole) for 18-hole players. Wait, 18-hole players hole 17 is French hole 8).
-        // The conflict condition is if "une partie arrive en même temps que l'autre au trou numéro 8 français."
-        // Let's create a map of arrivals at Hole 8.
-        let hole8Arrivals = {};
+        // 2. Détection des conflits au Trou 8 (Français) / Trou 17
+        // On recense toutes les arrivées sur le trou 8 et le trou 17
+        let timeMap8 = {};
+        let timeMap17 = {};
         
-        for (let d = 0; d < nbDepartures; d++) {
-            // For 18-hole players, the 8th French hole is the 17th hole they play? Let's assume all players play sequentially hole 1 to 18 because the user says "tous les horaires de tous les trous suivants sont calculés en partant d'un principe de 10 minutes par trou" for this specific tool task.
-            // Let's flag any time two groups have the same time at Hole 8 (French Hole #8). Let's use Hole 8 and Hole 17 for 18-hole players?
-            // "au trou numéro 8 français." Let's assume it means Hole 8.
-            let time8 = departures[d][7]; // 8th hole (index 7)
-            
-            if (!hole8Arrivals[time8]) {
-                hole8Arrivals[time8] = [];
-            }
-            hole8Arrivals[time8].push(d);
-        }
-        
-        let html = '<table><thead><tr><th>Départ</th>';
+        parties.forEach((p, pIndex) => {
+            p.holeTimes.forEach(ht => {
+                if (ht.hole === 8) {
+                    if (!timeMap8[ht.timeStr]) timeMap8[ht.timeStr] = [];
+                    timeMap8[ht.timeStr].push(pIndex);
+                }
+                if (ht.hole === 17) {
+                    if (!timeMap17[ht.timeStr]) timeMap17[ht.timeStr] = [];
+                    timeMap17[ht.timeStr].push(pIndex);
+                }
+            });
+        });
+
+        // 3. Construction du tableau
+        let html = '<table><thead><tr><th>Dép.</th><th>Type</th>';
         for (let h = 1; h <= 18; h++) {
-            html += `<th>Trou ${h}</th>`;
+            html += `<th>T${h}</th>`;
         }
         html += '</tr></thead><tbody>';
         
-        for (let d = 0; d < nbDepartures; d++) {
-            let depTimeObj = new Date(baseDate.getTime() + d * intervalMinutes * 60000);
-            const depH = String(depTimeObj.getHours()).padStart(2, '0');
-            const depM = String(depTimeObj.getMinutes()).padStart(2, '0');
-            html += `<tr><td>${depH}:${depM}</td>`;
+        parties.forEach((p, pIndex) => {
+            html += `<tr>`;
+            html += `<td><strong>${p.startTimeStr}</strong></td>`;
+            html += `<td><span class="type-badge">${p.is18Holes ? '18T' : '9T'}</span></td>`;
             
             for (let h = 1; h <= 18; h++) {
-                let time = departures[d][h-1];
-                let isConflict = false;
+                let ht = p.holeTimes.find(item => item.hole === h);
                 
-                if (h === 8) {
-                    if (hole8Arrivals[time] && hole8Arrivals[time].length > 1) {
-                        isConflict = true;
+                if (!ht) {
+                    html += `<td style="background:#f8f9fa; color:#ccc;">-</td>`;
+                } else {
+                    let hasConflict = false;
+                    
+                    // Vérification croisement sur le Trou 8 ou Trou 17 avec une autre partie
+                    if (h === 8 && timeMap8[ht.timeStr] && timeMap8[ht.timeStr].length > 1) {
+                        hasConflict = true;
+                    }
+                    if (h === 17 && timeMap17[ht.timeStr] && timeMap17[ht.timeStr].length > 1) {
+                        hasConflict = true;
+                    }
+
+                    // Croisement si une partie arrive au Trou 17 en même temps qu'une autre au Trou 8
+                    if (h === 8 && timeMap17[ht.timeStr] && timeMap17[ht.timeStr].length > 0) {
+                        hasConflict = true;
+                    }
+                    if (h === 17 && timeMap8[ht.timeStr] && timeMap8[ht.timeStr].length > 0) {
+                        hasConflict = true;
+                    }
+
+                    if (hasConflict) {
+                        html += `<td class="conflict" title="Conflit de croisement à ${ht.timeStr}">${ht.timeStr}</td>`;
+                    } else {
+                        html += `<td>${ht.timeStr}</td>`;
                     }
                 }
-                
-                if (isConflict) {
-                    html += `<td class="conflict">${time}</td>`;
-                } else {
-                    html += `<td>${time}</td>`;
-                }
             }
-            html += '</tr>';
-        }
+            html += `</tr>`;
+        });
         
         html += '</tbody></table>';
         document.getElementById('results').innerHTML = html;
