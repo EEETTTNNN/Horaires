@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Starter Golf - Planning & Croisements</title>
+    <title>Planning Golf Franco-Italien - Voiturettes & Cadence</title>
     <style>
         :root {
             --primary-color: #1b4332;
@@ -16,13 +16,12 @@
             --conflict-bg: #ffcdd2;
             --conflict-text: #b71c1c;
             --conflict-border: #e53935;
+            --badge-fr: #1d3557;
+            --badge-it: #2a9d8f;
+            --buggy-bg: #fff3cd;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -35,553 +34,497 @@
         header {
             background-color: var(--primary-color);
             color: white;
-            padding: 20px;
+            padding: 15px 20px;
             border-radius: 8px;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
+        header h1 { font-size: 22px; margin-bottom: 4px; }
+        header p { font-size: 13px; color: #d8f3dc; }
 
-        header p {
-            font-size: 14px;
-            color: #d8f3dc;
-        }
-
-        .controls {
+        .controls-panel {
             background: var(--card-bg);
-            padding: 15px 20px;
+            padding: 15px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .top-row {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
         }
 
         .date-picker-group {
             display: flex;
             align-items: center;
             gap: 10px;
-        }
-
-        .date-picker-group label {
             font-weight: bold;
-            font-size: 15px;
         }
 
         .date-picker-group input[type="date"] {
-            padding: 8px 12px;
+            padding: 6px 10px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            font-size: 15px;
+            font-size: 14px;
         }
 
-        .legend {
+        .tempo-settings {
+            background-color: #eef4f1;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid #c8e6c9;
             display: flex;
+            flex-wrap: wrap;
             gap: 15px;
-            font-size: 13px;
+            align-items: center;
         }
 
-        .legend-item {
+        .tempo-settings h3 {
+            font-size: 13px;
+            color: var(--primary-color);
+            width: 100%;
+            margin-bottom: -5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tempo-field {
             display: flex;
             align-items: center;
             gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
         }
 
-        .legend-box {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-        }
-
-        .legend-box.conflict-box {
-            background-color: var(--conflict-bg);
-            border: 1px solid var(--conflict-border);
-        }
-
-        .legend-box.free-box {
-            background-color: #f8f9fa;
+        .tempo-field input[type="number"] {
+            width: 60px;
+            padding: 4px;
             border: 1px solid var(--border-color);
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
         }
 
         .table-wrapper {
             background: var(--card-bg);
             border-radius: 8px;
             overflow-x: auto;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1200px;
+            min-width: 1350px;
             font-size: 12px;
         }
 
         th, td {
             border: 1px solid var(--border-color);
-            padding: 8px 6px;
+            padding: 6px 4px;
             text-align: center;
+            vertical-align: middle;
         }
 
-        th {
-            background-color: var(--secondary-color);
-            color: white;
-            font-weight: 600;
-            white-space: nowrap;
-        }
+        th { background-color: var(--secondary-color); color: white; font-weight: 600; font-size: 11px; }
+        th.section-fr { background-color: var(--badge-fr); }
+        th.section-it { background-color: var(--badge-it); }
 
-        th.section-fr { background-color: #2d6a4f; }
-        th.section-it { background-color: #1d3557; }
-        th.section-return { background-color: #6a040f; }
+        .time-col { font-weight: bold; font-size: 12px; background-color: #e9ecef !important; width: 65px; }
 
-        tr:nth-child(even) {
-            background-color: #fcfcfc;
-        }
-
-        .time-col {
-            font-weight: bold;
-            font-size: 13px;
-            background-color: #e9ecef !important;
-            width: 70px;
-        }
-
-        .players-select, .type-select {
-            padding: 4px 6px;
-            border-radius: 4px;
+        .departure-card {
+            background: #fff;
             border: 1px solid var(--border-color);
-            font-size: 12px;
-            background-color: white;
+            border-radius: 5px;
+            padding: 5px;
+            margin-bottom: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        .type-select {
-            font-weight: bold;
+        .departure-card.has-buggy {
+            background-color: var(--buggy-bg);
+            border-color: #ffe082;
         }
 
-        .btn-action {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
+        .departure-card:last-child { margin-bottom: 0; }
 
-        .btn-add { color: #28a745; }
-        .btn-add:hover { background-color: #e8f5e9; }
-        .btn-remove { color: #dc3545; }
-        .btn-remove:hover { background-color: #ffebee; }
-
-        .cell-passage {
-            font-family: monospace;
-            font-size: 12px;
-        }
-
-        .cell-empty {
-            color: #ccc;
-            background-color: #f8f9fa;
-        }
-
-        .conflict {
-            background-color: var(--conflict-bg) !important;
-            color: var(--conflict-text) !important;
-            font-weight: bold;
-            border: 2px solid var(--conflict-border) !important;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.85; }
-            100% { opacity: 1; }
-        }
-
-        .print-btn {
-            background-color: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
+        .badge-container {
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        .print-btn:hover {
-            background-color: var(--primary-color);
+        .origin-badge {
+            font-size: 9px;
+            font-weight: bold;
+            color: white;
+            padding: 2px 4px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+        .origin-FR { background-color: var(--badge-fr); }
+        .origin-IT { background-color: var(--badge-it); }
+
+        .buggy-badge {
+            font-size: 12px;
+            background: #fff;
+            border: 1px solid #ffca28;
+            border-radius: 4px;
+            padding: 1px 3px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .card-row { display: flex; gap: 4px; align-items: center; justify-content: space-between; }
+
+        .buggy-toggle {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            background: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            border: 1px solid #ced4da;
+        }
+
+        .buggy-toggle input { cursor: pointer; }
+
+        select {
+            padding: 2px 4px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            font-size: 11px;
+            background: white;
+        }
+
+        .btn-action {
+            background: none; border: none; cursor: pointer; font-size: 13px; padding: 2px 4px; border-radius: 3px;
+        }
+        .btn-add { color: #28a745; font-weight: bold; font-size: 14px; }
+        .btn-remove { color: #dc3545; }
+
+        .passage-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            font-family: monospace;
+            font-size: 11px;
+            padding: 1px 0;
+            border-bottom: 1px dotted #eee;
+        }
+        .passage-item:last-child { border-bottom: none; }
+
+        .conflict {
+            background-color: var(--conflict-bg) !important;
+            color: var(--conflict-text) !important;
+            font-weight: bold;
+            border: 1px dashed var(--conflict-border) !important;
+        }
+
+        .print-btn {
+            background-color: var(--secondary-color); color: white; border: none;
+            padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px;
         }
 
         @media print {
-            body { background: white; padding: 0; }
-            .controls, .btn-action { display: none !important; }
-            .table-wrapper { box-shadow: none; }
-            table { min-width: 100%; font-size: 10px; }
-            th { background-color: #333 !important; color: white !important; -webkit-print-color-adjust: exact; }
-            .conflict { background-color: #ffcdd2 !important; -webkit-print-color-adjust: exact; }
+            .controls-panel, .btn-action { display: none !important; }
+            body { padding: 0; }
         }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>Starter Golf - Planning & Détection de Croisements</h1>
-    <p>Gestion des départs (08h00 - 19h00) & Suivi des passages Franco-Italiens</p>
+    <h1>Planning Golf - Cadence, Croisements & Voiturettes</h1>
+    <p>Ajustement dynamique du temps de jeu, gestion des départs FR / IT et des conflits</p>
 </header>
 
-<div class="controls">
-    <div class="date-picker-group">
-        <label for="currentDate">Journée du :</label>
-        <input type="date" id="currentDate">
+<div class="controls-panel">
+    <div class="top-row">
+        <div class="date-picker-group">
+            <label for="currentDate">Date du jour :</label>
+            <input type="date" id="currentDate">
+        </div>
+
+        <button class="print-btn" onclick="window.print()">🖨️ Imprimer le planning</button>
     </div>
 
-    <div class="legend">
-        <div class="legend-item">
-            <div class="legend-box free-box"></div>
-            <span>Créneau Libre / Standard</span>
+    <!-- Encart de réglage du rythme -->
+    <div class="tempo-settings">
+        <h3>⏱️ Réglage du Cadenceur du Jour</h3>
+        
+        <div class="tempo-field">
+            <label for="timePerHoleFR">Temps moyen / trou (FR) :</label>
+            <input type="number" id="timePerHoleFR" value="10" min="5" max="25" onchange="renderPlanning()"> min
         </div>
-        <div class="legend-item">
-            <div class="legend-box conflict-box"></div>
-            <span>Risque de Croisement / Conflit</span>
+
+        <div class="tempo-field">
+            <label for="time7HolesFR">Temps Aller FR (T1 ➔ Jonction G7) :</label>
+            <input type="number" id="time7HolesFR" value="70" min="30" max="150" onchange="syncFrom7Holes(this.value)"> min
+        </div>
+
+        <div class="tempo-field">
+            <label for="timeIT5">5 Trous IT (Départ IT ➔ Jonction) :</label>
+            <input type="number" id="timeIT5" value="50" min="20" max="100" onchange="renderPlanning()"> min
+        </div>
+
+        <div class="tempo-field">
+            <label for="timeIT9">9 Trous IT (Section complète) :</label>
+            <input type="number" id="timeIT9" value="90" min="45" max="180" onchange="renderPlanning()"> min
         </div>
     </div>
-
-    <button class="print-btn" onclick="window.print()">
-        🖨️ Imprimer le Planning
-    </button>
 </div>
 
 <div class="table-wrapper">
-    <table id="planningTable">
+    <table>
         <thead>
             <tr>
-                <th rowspan="2" class="time-col">Départ</th>
-                <th rowspan="2">Joueurs</th>
-                <th rowspan="2">Formule de Parcours</th>
-                <th colspan="7" class="section-fr">Parcours France (Aller)</th>
-                <th class="section-it">Italie</th>
-                <th colspan="2" class="section-return">Retour France</th>
-                <th rowspan="2">Actions</th>
+                <th rowspan="2" class="time-col">Heure</th>
+                <th rowspan="2" style="width: 220px;">Parties Démarrées</th>
+                <th colspan="7" class="section-fr">France - Aller (G1 à G7)</th>
+                <th class="section-it">Italie (Tronçon IT)</th>
+                <th colspan="2" class="section-fr">France - Retour (G8 & G9)</th>
             </tr>
             <tr>
-                <th>G1</th>
-                <th>G2</th>
-                <th>G3</th>
-                <th>G4</th>
-                <th>G5</th>
-                <th>G6</th>
-                <th>G7</th>
-                <th>9 Trous IT</th>
-                <th>G8 (17e)</th>
-                <th>G9 (18e)</th>
+                <th>G1</th><th>G2</th><th>G3</th><th>G4</th><th>G5</th><th>G6</th><th>G7</th>
+                <th>Parcours IT</th>
+                <th>G8 (17e)</th><th>G9 (18e)</th>
             </tr>
         </thead>
-        <tbody id="tableBody">
-            <!-- Généré dynamiquement en JavaScript -->
-        </tbody>
+        <tbody id="tableBody"></tbody>
     </table>
 </div>
 
 <script>
-    // Configuration des constantes du parcours
-    const START_HOUR = 8;
-    const END_HOUR = 19;
-    const INTERVAL_MINUTES = 10;
-    const TIME_PER_HOLE = 10; // minutes par trou
-
-    // Stockage de l'état des départs par date
-    // Structure: { "YYYY-MM-DD": { "08:00": { players: 2, type: "18_FR_IT" } } }
+    const START_HOUR = 8, END_HOUR = 19, INTERVAL = 10;
     let scheduleData = {};
 
     document.addEventListener('DOMContentLoaded', () => {
         const dateInput = document.getElementById('currentDate');
-        
-        // Initialisation à la date d'aujourd'hui
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.value = today;
-
-        // Écouteur de changement de date
+        dateInput.value = new Date().toISOString().split('T')[0];
         dateInput.addEventListener('change', renderPlanning);
-
-        // Premier rendu
         renderPlanning();
     });
 
-    // Génération de tous les créneaux horaires de 08:00 à 19:00
-    function generateTimeSlots() {
+    function syncFrom7Holes(val) {
+        const time7 = parseInt(val) || 70;
+        const perHole = Math.round(time7 / 7);
+        document.getElementById('timePerHoleFR').value = perHole;
+        renderPlanning();
+    }
+
+    function generateSlots() {
         const slots = [];
         for (let h = START_HOUR; h <= END_HOUR; h++) {
-            for (let m = 0; m < 60; m += INTERVAL_MINUTES) {
-                if (h === END_HOUR && m > 0) break; // Arrêt à 19:00 exact
-                const hStr = String(h).padStart(2, '0');
-                const mStr = String(m).padStart(2, '0');
-                slots.push(`${hStr}:${mStr}`);
+            for (let m = 0; m < 60; m += INTERVAL) {
+                if (h === END_HOUR && m > 0) break;
+                slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
             }
         }
         return slots;
     }
 
-    // Calcul des heures de passage pour une partie donnée
-    function calculatePassages(startTimeStr, type) {
-        if (!type || type === 'NONE') return null;
-
-        const [hours, minutes] = startTimeStr.split(':').map(Number);
-        let current = new Date();
-        current.setHours(hours, minutes, 0, 0);
-
-        const addMinutes = (date, mins) => new Date(date.getTime() + mins * 60000);
-        const formatTime = (date) => {
-            return String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
-        };
-
-        let passages = {
-            g1: '', g2: '', g3: '', g4: '', g5: '', g6: '', g7: '',
-            it: '',
-            g8: '', g9: ''
-        };
-
-        if (type === '9_FR') {
-            // 9 Trous France uniquement (Green 1 à 9)
-            let t = current;
-            passages.g1 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g3 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g4 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g5 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g6 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g7 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g8 = formatTime(t = addMinutes(t, TIME_PER_HOLE)); // 8e trou
-            passages.g9 = formatTime(t = addMinutes(t, TIME_PER_HOLE)); // 9e trou
-        } 
-        else if (type === '18_FR_IT') {
-            // 7 Trous FR -> 9 Trous IT -> 2 Trous FR (Green 8 et 9)
-            let t = current;
-            passages.g1 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g3 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g4 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g5 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g6 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g7 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            
-            // Passage en Italie (9 trous = 90 min)
-            let startIT = t;
-            let endIT = addMinutes(startIT, 90);
-            passages.it = `${formatTime(startIT)}-${formatTime(endIT)}`;
-            
-            // Retour en France sur les Trous 8 (17e) et 9 (18e)
-            t = endIT;
-            passages.g8 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g9 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-        }
-        else if (type === '18_FR') {
-            // 18 Trous 100% France (2 fois 9 trous)
-            let t = current;
-            // 1er Tour (T1 à T7)
-            passages.g1 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g3 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g4 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g5 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g6 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            passages.g7 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            
-            // Fin du 1er tour
-            let g8_t1 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            let g9_t1 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-
-            // 2e Tour (Repasse sur le parcours) - On affiche la combinaison
-            let g1_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            let g2_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            let g3_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            let g4_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            let g5_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            let g6_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            let g7_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            let g8_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-            let g9_t2 = formatTime(t = addMinutes(t, TIME_PER_HOLE));
-
-            passages.g1 += ` / ${g1_t2}`;
-            passages.g2 += ` / ${g2_t2}`;
-            passages.g3 += ` / ${g3_t2}`;
-            passages.g4 += ` / ${g4_t2}`;
-            passages.g5 += ` / ${g5_t2}`;
-            passages.g6 += ` / ${g6_t2}`;
-            passages.g7 += ` / ${g7_t2}`;
-            passages.it = "100% FR";
-            passages.g8 = `${g8_t1} / ${g8_t2}`;
-            passages.g9 = `${g9_t1} / ${g9_t2}`;
-        }
-
-        return passages;
+    function addMinutes(timeStr, mins) {
+        const [h, m] = timeStr.split(':').map(Number);
+        const d = new Date(2000, 0, 1, h, m + mins);
+        return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
     }
 
-    // Détection des conflits sur les zones sensibles (Green 8 / 17e trou)
-    function detectConflicts(allPassages) {
-        const timeMapG8 = {};
-        const conflicts = new Set();
+    function calculatePassages(origin, type, startTime) {
+        const holeFR = parseInt(document.getElementById('timePerHoleFR').value) || 10;
+        const timeIT5 = parseInt(document.getElementById('timeIT5').value) || 50;
+        const timeIT9 = parseInt(document.getElementById('timeIT9').value) || 90;
 
-        // Cartographier tous les passages sur le Green 8
-        Object.keys(allPassages).forEach(timeSlot => {
-            const p = allPassages[timeSlot];
-            if (!p) return;
+        let p = { g1:'', g2:'', g3:'', g4:'', g5:'', g6:'', g7:'', it:'', g8:'', g9:'' };
+        let t = startTime;
 
-            if (p.g8) {
-                // Si la cellule contient plusieurs heures (ex: 18T FR)
-                const times = p.g8.split(' / ');
-                times.forEach(t => {
-                    if (t) {
-                        timeMapG8[t] = timeMapG8[t] || [];
-                        timeMapG8[t].push(timeSlot);
-                    }
-                });
+        if (origin === 'FR') {
+            if (type === '9') {
+                p.g1 = t = addMinutes(t, holeFR);
+                p.g2 = t = addMinutes(t, holeFR);
+                p.g3 = t = addMinutes(t, holeFR);
+                p.g4 = t = addMinutes(t, holeFR);
+                p.g5 = t = addMinutes(t, holeFR);
+                p.g6 = t = addMinutes(t, holeFR);
+                p.g7 = t = addMinutes(t, holeFR);
+                p.g8 = t = addMinutes(t, holeFR);
+                p.g9 = t = addMinutes(t, holeFR);
+            } else if (type === '18') {
+                p.g1 = t = addMinutes(t, holeFR);
+                p.g2 = t = addMinutes(t, holeFR);
+                p.g3 = t = addMinutes(t, holeFR);
+                p.g4 = t = addMinutes(t, holeFR);
+                p.g5 = t = addMinutes(t, holeFR);
+                p.g6 = t = addMinutes(t, holeFR);
+                p.g7 = t = addMinutes(t, holeFR);
+                
+                let startIT = t;
+                let endIT = addMinutes(startIT, timeIT9);
+                p.it = `${startIT} ➔ ${endIT}`;
+                
+                t = endIT;
+                p.g8 = t = addMinutes(t, holeFR);
+                p.g9 = t = addMinutes(t, holeFR);
             }
-        });
+        } else if (origin === 'IT') {
+            if (type === '9') {
+                p.it = `${t} ➔ ${addMinutes(t, timeIT9)} (9T IT)`;
+            } else if (type === '18') {
+                let startIT1 = t;
+                let endIT1 = addMinutes(startIT1, timeIT5);
+                p.it = `T1-5: ${startIT1}➔${endIT1}`;
 
-        // Identifier les heures où plus d'une partie est présente au Green 8
-        Object.keys(timeMapG8).forEach(time => {
-            if (timeMapG8[time].length > 1) {
-                timeMapG8[time].forEach(slot => conflicts.add(slot));
+                t = endIT1;
+                p.g1 = t = addMinutes(t, holeFR);
+                p.g2 = t = addMinutes(t, holeFR);
+                p.g3 = t = addMinutes(t, holeFR);
+                p.g4 = t = addMinutes(t, holeFR);
+                p.g5 = t = addMinutes(t, holeFR);
+                p.g6 = t = addMinutes(t, holeFR);
+                p.g7 = t = addMinutes(t, holeFR);
+                p.g8 = t = addMinutes(t, holeFR);
+                p.g9 = t = addMinutes(t, holeFR);
+
+                let startIT2 = t;
+                let endIT2 = addMinutes(startIT2, Math.round(timeIT5 * 0.8));
+                p.it += `<br>T6-9: ${startIT2}➔${endIT2}`;
             }
-        });
-
-        return conflicts;
+        }
+        return p;
     }
 
-    // Rendu principal du tableau
     function renderPlanning() {
         const dateKey = document.getElementById('currentDate').value;
-        if (!scheduleData[dateKey]) {
-            scheduleData[dateKey] = {};
-        }
-
-        const currentDayData = scheduleData[dateKey];
-        const timeSlots = generateTimeSlots();
+        if (!scheduleData[dateKey]) scheduleData[dateKey] = {};
+        const currentData = scheduleData[dateKey];
+        const slots = generateSlots();
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
 
-        // Pre-calcul de tous les passages pour la détection de conflit
-        const calculatedPassages = {};
-        timeSlots.forEach(slot => {
-            const entry = currentDayData[slot];
-            if (entry && entry.type && entry.type !== 'NONE') {
-                calculatedPassages[slot] = calculatePassages(slot, entry.type);
-            }
+        const greenOccupancy = {};
+
+        slots.forEach(slot => {
+            (currentData[slot] || []).forEach(dep => {
+                const pass = calculatePassages(dep.origin, dep.type, slot);
+                Object.keys(pass).forEach(k => {
+                    if (pass[k] && k !== 'it') {
+                        greenOccupancy[k] = greenOccupancy[k] || {};
+                        const timeVal = pass[k];
+                        greenOccupancy[k][timeVal] = (greenOccupancy[k][timeVal] || 0) + 1;
+                    }
+                });
+            });
         });
 
-        const conflictingSlots = detectConflicts(calculatedPassages);
-
-        // Construction du tableau ligne par ligne
-        timeSlots.forEach(slot => {
-            const entry = currentDayData[slot] || { players: 0, type: 'NONE' };
-            const passages = calculatedPassages[slot];
-            const isConflicting = conflictingSlots.has(slot);
-
+        slots.forEach(slot => {
+            const deps = currentData[slot] || [];
             const tr = document.createElement('tr');
-            if (isConflicting) {
-                tr.classList.add('conflict');
-            }
 
-            // Colonne Heure
             let html = `<td class="time-col">${slot}</td>`;
 
-            // Colonne Joueurs
+            html += `<td>`;
+            deps.forEach((dep, idx) => {
+                html += `
+                    <div class="departure-card ${dep.hasBuggy ? 'has-buggy' : ''}">
+                        <div class="card-row">
+                            <div class="badge-container">
+                                <span class="origin-badge origin-${dep.origin}">Départ ${dep.origin}</span>
+                                ${dep.hasBuggy ? `<span class="buggy-badge" title="Voiturette active">🛺</span>` : ''}
+                            </div>
+                            <button class="btn-action btn-remove" onclick="removeDep('${dateKey}','${slot}',${idx})">❌</button>
+                        </div>
+                        <div class="card-row">
+                            <select onchange="updateDep('${dateKey}','${slot}',${idx},'players',this.value)">
+                                <option value="1" ${dep.players==1?'selected':''}>1J</option>
+                                <option value="2" ${dep.players==2?'selected':''}>2J</option>
+                                <option value="3" ${dep.players==3?'selected':''}>3J</option>
+                                <option value="4" ${dep.players==4?'selected':''}>4J</option>
+                            </select>
+                            <select onchange="updateDep('${dateKey}','${slot}',${idx},'type',this.value)">
+                                <option value="9" ${dep.type=='9'?'selected':''}>9 Trous</option>
+                                <option value="18" ${dep.type=='18'?'selected':''}>18 Trous</option>
+                            </select>
+                            <label class="buggy-toggle" title="Cocher si voiturette dans la partie">
+                                <input type="checkbox" ${dep.hasBuggy ? 'checked' : ''} onchange="updateDep('${dateKey}','${slot}',${idx},'hasBuggy',this.checked)">
+                                🛺
+                            </label>
+                        </div>
+                    </div>
+                `;
+            });
             html += `
-                <td>
-                    <select class="players-select" onchange="updateEntry('${dateKey}', '${slot}', 'players', this.value)">
-                        <option value="0" ${entry.players == 0 ? 'selected' : ''}>-</option>
-                        <option value="1" ${entry.players == 1 ? 'selected' : ''}>1 J</option>
-                        <option value="2" ${entry.players == 2 ? 'selected' : ''}>2 J</option>
-                        <option value="3" ${entry.players == 3 ? 'selected' : ''}>3 J</option>
-                        <option value="4" ${entry.players == 4 ? 'selected' : ''}>4 J</option>
-                    </select>
-                </td>
-            `;
+                <div style="display:flex; gap:4px; justify-content:center; margin-top:2px;">
+                    <button class="btn-action btn-add" title="Ajouter départ France" onclick="addDep('${dateKey}','${slot}','FR')">+ 🇫🇷</button>
+                    <button class="btn-action btn-add" title="Ajouter départ Italie" onclick="addDep('${dateKey}','${slot}','IT')">+ 🇮🇹</button>
+                </div>
+            </td>`;
 
-            // Colonne Type de parcours
-            html += `
-                <td>
-                    <select class="type-select" onchange="updateEntry('${dateKey}', '${slot}', 'type', this.value)">
-                        <option value="NONE" ${entry.type === 'NONE' ? 'selected' : ''}>Aucun départ</option>
-                        <option value="9_FR" ${entry.type === '9_FR' ? 'selected' : ''}>9T France</option>
-                        <option value="18_FR_IT" ${entry.type === '18_FR_IT' ? 'selected' : ''}>18T Franco-Italien</option>
-                        <option value="18_FR" ${entry.type === '18_FR' ? 'selected' : ''}>18T 100% France</option>
-                    </select>
-                </td>
-            `;
-
-            // Colonnes de passage
-            if (passages) {
-                html += `<td class="cell-passage">${passages.g1}</td>`;
-                html += `<td class="cell-passage">${passages.g2}</td>`;
-                html += `<td class="cell-passage">${passages.g3}</td>`;
-                html += `<td class="cell-passage">${passages.g4}</td>`;
-                html += `<td class="cell-passage">${passages.g5}</td>`;
-                html += `<td class="cell-passage">${passages.g6}</td>`;
-                html += `<td class="cell-passage">${passages.g7}</td>`;
-                html += `<td class="cell-passage">${passages.it}</td>`;
-                html += `<td class="cell-passage ${isConflicting ? 'conflict' : ''}">${passages.g8}</td>`;
-                html += `<td class="cell-passage">${passages.g9}</td>`;
-            } else {
-                for (let i = 0; i < 10; i++) {
-                    html += `<td class="cell-empty">-</td>`;
-                }
-            }
-
-            // Colonne Actions (Boutons + / -)
-            html += `
-                <td>
-                    ${entry.type === 'NONE' 
-                        ? `<button class="btn-action btn-add" title="Ajouter une partie" onclick="quickAdd('${dateKey}', '${slot}')">➕</button>`
-                        : `<button class="btn-action btn-remove" title="Supprimer la partie" onclick="quickRemove('${dateKey}', '${slot}')">❌</button>`
+            let cols = { g1:[], g2:[], g3:[], g4:[], g5:[], g6:[], g7:[], it:[], g8:[], g9:[] };
+            deps.forEach(dep => {
+                const pass = calculatePassages(dep.origin, dep.type, slot);
+                Object.keys(cols).forEach(k => {
+                    if (pass[k]) {
+                        const timeVal = pass[k];
+                        const isConflict = k !== 'it' && greenOccupancy[k][timeVal] > 1;
+                        cols[k].push({ 
+                            text: timeVal, 
+                            isConflict: isConflict,
+                            hasBuggy: dep.hasBuggy
+                        });
                     }
-                </td>
-            `;
+                });
+            });
+
+            ['g1','g2','g3','g4','g5','g6','g7','it','g8','g9'].forEach(k => {
+                html += `<td>`;
+                cols[k].forEach(item => {
+                    html += `
+                        <span class="passage-item ${item.isConflict ? 'conflict' : ''}">
+                            ${item.hasBuggy ? '🛺 ' : ''}${item.text}
+                        </span>
+                    `;
+                });
+                if (cols[k].length === 0) html += `<span style="color:#ccc;">-</span>`;
+                html += `</td>`;
+            });
 
             tr.innerHTML = html;
             tbody.appendChild(tr);
         });
     }
 
-    // Mise à jour de l'état
-    window.updateEntry = function(dateKey, slot, field, value) {
-        if (!scheduleData[dateKey][slot]) {
-            scheduleData[dateKey][slot] = { players: 1, type: '18_FR_IT' };
-        }
-
-        if (field === 'players') {
-            scheduleData[dateKey][slot].players = parseInt(value);
-            if (parseInt(value) > 0 && scheduleData[dateKey][slot].type === 'NONE') {
-                scheduleData[dateKey][slot].type = '18_FR_IT';
-            }
-        } else if (field === 'type') {
-            scheduleData[dateKey][slot].type = value;
-            if (value !== 'NONE' && scheduleData[dateKey][slot].players === 0) {
-                scheduleData[dateKey][slot].players = 2; // Défaut à 2 joueurs
-            }
-        }
-
+    window.addDep = function(dateKey, slot, origin) {
+        if (!scheduleData[dateKey][slot]) scheduleData[dateKey][slot] = [];
+        scheduleData[dateKey][slot].push({ origin: origin, players: 2, type: '18', hasBuggy: false });
         renderPlanning();
     };
 
-    // Ajout rapide d'une partie
-    window.quickAdd = function(dateKey, slot) {
-        scheduleData[dateKey][slot] = { players: 2, type: '18_FR_IT' };
+    window.removeDep = function(dateKey, slot, idx) {
+        scheduleData[dateKey][slot].splice(idx, 1);
         renderPlanning();
     };
 
-    // Suppression rapide
-    window.quickRemove = function(dateKey, slot) {
-        scheduleData[dateKey][slot] = { players: 0, type: 'NONE' };
+    window.updateDep = function(dateKey, slot, idx, field, val) {
+        scheduleData[dateKey][slot][idx][field] = val;
         renderPlanning();
     };
 </script>
