@@ -16,9 +16,13 @@
             --badge-it: #2a9d8f;
             --buggy-bg: #fff3cd;
             
-            /* Couleurs de ligne selon l'origine */
+            /* Couleurs légères pour l'origine */
             --row-bg-fr: #eef4ff;
             --row-bg-it: #e8f8f5;
+            
+            /* Couleurs d'étiquettes de passage */
+            --item-bg-fr: #d8e2dc; 
+            --item-bg-it: #d8f3dc;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -143,6 +147,9 @@
         /* Styles dynamiques de rangée */
         tr.row-origin-FR { background-color: var(--row-bg-fr) !important; }
         tr.row-origin-IT { background-color: var(--row-bg-it) !important; }
+        tr.row-origin-BOTH { 
+            background: linear-gradient(180deg, var(--row-bg-fr) 50%, var(--row-bg-it) 50%) !important; 
+        }
 
         .time-col { font-weight: bold; font-size: 12px; background-color: #e9ecef; width: 60px; }
 
@@ -158,9 +165,11 @@
             gap: 3px;
         }
 
+        .departure-card.origin-FR { border-left: 4px solid var(--badge-fr); }
+        .departure-card.origin-IT { border-left: 4px solid var(--badge-it); }
+
         .departure-card.has-buggy {
             background-color: var(--buggy-bg);
-            border-color: #ffe082;
         }
 
         .badge-container { display: flex; align-items: center; justify-content: space-between; }
@@ -230,6 +239,15 @@
             color: #000;
         }
 
+        .passage-item.item-origin-FR {
+            background-color: #dbe7ff;
+            border-color: #92b4f2;
+        }
+        .passage-item.item-origin-IT {
+            background-color: #d1f4e0;
+            border-color: #79dcb1;
+        }
+
         .print-btn {
             background-color: var(--secondary-color); color: white; border: none;
             padding: 5px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px;
@@ -245,7 +263,7 @@
 
 <header>
     <h1>Planning Golf Franco-Italien - Regulating Tool</h1>
-    <p>Visualisation simplifiée des 5 parcours, coloration par ligne et limitation à 2 parties par créneau</p>
+    <p>Visualisation des 5 parcours, separation de ligne bicolore & calcul exact des heures de passage</p>
 </header>
 
 <div class="controls-panel">
@@ -423,10 +441,18 @@
             const deps = currentData[slot] || [];
             const tr = document.createElement('tr');
 
-            // Application de la couleur sur TOUTE la ligne si au moins une partie est présente
+            // Gestion de la couleur de la ligne (séparée si FR + IT)
             if (deps.length > 0) {
-                const primaryOrigin = deps[0].origin;
-                tr.classList.add(`row-origin-${primaryOrigin}`);
+                const hasFR = deps.some(d => d.origin === 'FR');
+                const hasIT = deps.some(d => d.origin === 'IT');
+
+                if (hasFR && hasIT) {
+                    tr.classList.add('row-origin-BOTH');
+                } else if (hasFR) {
+                    tr.classList.add('row-origin-FR');
+                } else if (hasIT) {
+                    tr.classList.add('row-origin-IT');
+                }
             }
 
             let html = `<td class="time-col">${slot}</td>`;
@@ -435,7 +461,7 @@
             html += `<td>`;
             deps.forEach((dep, idx) => {
                 html += `
-                    <div class="departure-card ${dep.hasBuggy ? 'has-buggy' : ''}">
+                    <div class="departure-card origin-${dep.origin} ${dep.hasBuggy ? 'has-buggy' : ''}">
                         <div class="badge-container">
                             <span class="origin-badge origin-${dep.origin}">Départ ${dep.origin}</span>
                             <button class="btn-action btn-remove" onclick="removeDep('${dateKey}','${slot}',${idx})">❌</button>
@@ -487,7 +513,8 @@
                         const conflictColor = conflictColorMap[conflictKey] || null;
 
                         cols[gk].push({
-                            startTime: slot,
+                            passageTime: timeVal, // Heure calculée du passage
+                            origin: dep.origin,
                             hasBuggy: dep.hasBuggy,
                             conflictColor: conflictColor
                         });
@@ -504,8 +531,8 @@
                         : '';
                     
                     html += `
-                        <span class="passage-item" style="${cellStyle}">
-                            ${item.hasBuggy ? '🛺 ' : ''}${item.startTime}
+                        <span class="passage-item item-origin-${item.origin}" style="${cellStyle}">
+                            ${item.hasBuggy ? '🛺 ' : ''}${item.passageTime}
                         </span>
                     `;
                 });
@@ -522,9 +549,19 @@
         if (!scheduleData[dateKey][slot]) scheduleData[dateKey][slot] = [];
         if (scheduleData[dateKey][slot].length >= 2) return; // Blocage de sécurité
 
+        // Si la première partie est FR, proposer IT par défaut pour la 2ème (ou vice-versa)
+        let defaultCourse = '18_TRANS_FR';
+        let defaultOrigin = 'FR';
+        if (scheduleData[dateKey][slot].length === 1) {
+            if (scheduleData[dateKey][slot][0].origin === 'FR') {
+                defaultCourse = '9_IT';
+                defaultOrigin = 'IT';
+            }
+        }
+
         scheduleData[dateKey][slot].push({ 
-            courseCode: '18_TRANS_FR', 
-            origin: 'FR', 
+            courseCode: defaultCourse, 
+            origin: defaultOrigin, 
             players: 2, 
             hasBuggy: false 
         });
