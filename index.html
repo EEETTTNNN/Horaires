@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planning Golf Franco-Italien - Horaires de Départ</title>
+    <title>Planning Golf Franco-Italien - Regulating Tool</title>
     <style>
         :root {
             --primary-color: #1b4332;
@@ -15,6 +15,10 @@
             --badge-fr: #1d3557;
             --badge-it: #2a9d8f;
             --buggy-bg: #fff3cd;
+            
+            /* Couleurs de ligne selon l'origine */
+            --row-bg-fr: #eef4ff;
+            --row-bg-it: #e8f8f5;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -136,7 +140,11 @@
         th.section-it { background-color: var(--badge-it); }
         th.section-fr-retour { background-color: #0d1b2a; }
 
-        .time-col { font-weight: bold; font-size: 12px; background-color: #e9ecef !important; width: 60px; }
+        /* Styles dynamiques de rangée */
+        tr.row-origin-FR { background-color: var(--row-bg-fr) !important; }
+        tr.row-origin-IT { background-color: var(--row-bg-it) !important; }
+
+        .time-col { font-weight: bold; font-size: 12px; background-color: #e9ecef; width: 60px; }
 
         .departure-card {
             background: #fff;
@@ -189,11 +197,24 @@
             border: 1px solid var(--border-color);
             font-size: 10px;
             background: white;
-            max-width: 140px;
+            max-width: 180px;
         }
 
         .btn-action { background: none; border: none; cursor: pointer; font-size: 12px; }
-        .btn-add { color: #28a745; font-weight: bold; font-size: 13px; }
+        .btn-add-main {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .btn-add-main:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
         .btn-remove { color: #dc3545; }
 
         .passage-item {
@@ -204,7 +225,7 @@
             padding: 4px 2px;
             margin: 2px 0;
             border-radius: 4px;
-            background-color: #f8f9fa;
+            background-color: #ffffff;
             border: 1px solid #ced4da;
             color: #000;
         }
@@ -215,7 +236,7 @@
         }
 
         @media print {
-            .controls-panel, .btn-action { display: none !important; }
+            .controls-panel, .btn-action, .btn-add-main { display: none !important; }
             body { padding: 0; }
         }
     </style>
@@ -223,8 +244,8 @@
 <body>
 
 <header>
-    <h1>Planning Golf Franco-Italien - Affichage des Heures de Départ</h1>
-    <p>Visualisation des heures de départ sur chaque green + détection flashy des conflits</p>
+    <h1>Planning Golf Franco-Italien - Regulating Tool</h1>
+    <p>Visualisation simplifiée des 5 parcours, coloration par ligne et limitation à 2 parties par créneau</p>
 </header>
 
 <div class="controls-panel">
@@ -254,7 +275,7 @@
         <thead>
             <tr>
                 <th rowspan="2" class="time-col">Heure</th>
-                <th rowspan="2" style="width: 230px;">Parties Démarrées</th>
+                <th rowspan="2" style="width: 250px;">Parties Démarrées</th>
                 <th colspan="7" class="section-fr-aller">Parcours France (Aller)</th>
                 <th colspan="9" class="section-it">Italie</th>
                 <th colspan="2" class="section-fr-retour">Retour France</th>
@@ -273,18 +294,19 @@
     const START_HOUR = 8, END_HOUR = 18, INTERVAL = 10;
     let scheduleData = {};
 
-    // Palette Haute Visibilité Néon
+    // Palette Haute Visibilité Néon pour les conflits
     const CONFLICT_COLORS = [
-        '#FF0055', // Magenta Néon
-        '#00E5FF', // Cyan Flash
-        '#FFCC00', // Jaune Néon
-        '#76FF03', // Vert Lime Flash
-        '#FF6D00', // Orange Flash
-        '#D500F9', // Violet Néon
-        '#00E676', // Vert Émeraude Flash
-        '#FF1744', // Rouge Néon
-        '#1DE9B6', // Turquoise Vif
-        '#FF9100'  // Ambre Néon
+        '#FF0055', '#00E5FF', '#FFCC00', '#76FF03', '#FF6D00',
+        '#D500F9', '#00E676', '#FF1744', '#1DE9B6', '#FF9100'
+    ];
+
+    // Liste unique des 5 parcours disponibles
+    const COURSE_OPTIONS = [
+        { code: '18_TRANS_FR', origin: 'FR', label: '18T Transfrontalier (Dép. France)' },
+        { code: '18_FR',       origin: 'FR', label: '18T France (2x9T)' },
+        { code: '9_FR',        origin: 'FR', label: '9T France' },
+        { code: '18_TRANS_IT', origin: 'IT', label: '18T Transfrontalier (Dép. Italie)' },
+        { code: '9_IT',        origin: 'IT', label: '9T Italie' }
     ];
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -311,43 +333,38 @@
         return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
     }
 
-    function calculatePassages(origin, type, startTime) {
+    function calculatePassages(courseCode, startTime) {
         const tFR = parseInt(document.getElementById('timeFR').value) || 10;
         const tIT = parseInt(document.getElementById('timeIT').value) || 10;
 
         let p = {};
         let t = startTime;
 
-        if (origin === 'FR') {
-            if (type === '18_TRANS') {
-                for (let i = 1; i <= 7; i++) { t = addMinutes(t, tFR); p[`f${i}`] = t; }
-                for (let i = 1; i <= 9; i++) { t = addMinutes(t, tIT); p[`i${i}`] = t; }
-                t = addMinutes(t, tFR); p['f8'] = t;
-                t = addMinutes(t, tFR); p['f9'] = t;
-            } else if (type === '18_FR') {
-                for (let i = 1; i <= 9; i++) { t = addMinutes(t, tFR); p[`f${i}_1`] = t; }
-                for (let i = 1; i <= 9; i++) { t = addMinutes(t, tFR); p[`f${i}_2`] = t; }
-                
-                let merged = {};
-                for (let i = 1; i <= 9; i++) {
-                    merged[`f${i}`] = [p[`f${i}_1`], p[`f${i}_2`]];
-                }
-                return merged;
-            } else if (type === '9_FR') {
-                for (let i = 1; i <= 9; i++) { t = addMinutes(t, tFR); p[`f${i}`] = t; }
+        if (courseCode === '18_TRANS_FR') {
+            for (let i = 1; i <= 7; i++) { t = addMinutes(t, tFR); p[`f${i}`] = t; }
+            for (let i = 1; i <= 9; i++) { t = addMinutes(t, tIT); p[`i${i}`] = t; }
+            t = addMinutes(t, tFR); p['f8'] = t;
+            t = addMinutes(t, tFR); p['f9'] = t;
+        } else if (courseCode === '18_FR') {
+            for (let i = 1; i <= 9; i++) { t = addMinutes(t, tFR); p[`f${i}_1`] = t; }
+            for (let i = 1; i <= 9; i++) { t = addMinutes(t, tFR); p[`f${i}_2`] = t; }
+            let merged = {};
+            for (let i = 1; i <= 9; i++) {
+                merged[`f${i}`] = [p[`f${i}_1`], p[`f${i}_2`]];
             }
-        } else if (origin === 'IT') {
-            if (type === '18_TRANS') {
-                for (let i = 1; i <= 5; i++) { t = addMinutes(t, tIT); p[`i${i}`] = t; }
-                const seqFR = [8, 9, 1, 2, 3, 4, 5, 6, 7];
-                seqFR.forEach(holeNum => {
-                    t = addMinutes(t, tFR);
-                    p[`f${holeNum}`] = t;
-                });
-                for (let i = 6; i <= 9; i++) { t = addMinutes(t, tIT); p[`i${i}`] = t; }
-            } else if (type === '9_IT') {
-                for (let i = 1; i <= 9; i++) { t = addMinutes(t, tIT); p[`i${i}`] = t; }
-            }
+            return merged;
+        } else if (courseCode === '9_FR') {
+            for (let i = 1; i <= 9; i++) { t = addMinutes(t, tFR); p[`f${i}`] = t; }
+        } else if (courseCode === '18_TRANS_IT') {
+            for (let i = 1; i <= 5; i++) { t = addMinutes(t, tIT); p[`i${i}`] = t; }
+            const seqFR = [8, 9, 1, 2, 3, 4, 5, 6, 7];
+            seqFR.forEach(holeNum => {
+                t = addMinutes(t, tFR);
+                p[`f${holeNum}`] = t;
+            });
+            for (let i = 6; i <= 9; i++) { t = addMinutes(t, tIT); p[`i${i}`] = t; }
+        } else if (courseCode === '9_IT') {
+            for (let i = 1; i <= 9; i++) { t = addMinutes(t, tIT); p[`i${i}`] = t; }
         }
 
         let res = {};
@@ -365,12 +382,12 @@
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
 
-        // 1. Détection des occupations globale (calcul sur l'heure réelle de passage)
+        // 1. Détection de l'occupation globale des trous
         const greenOccupancy = {};
 
         slots.forEach(slot => {
             (currentData[slot] || []).forEach(dep => {
-                const pass = calculatePassages(dep.origin, dep.type, slot);
+                const pass = calculatePassages(dep.courseCode, slot);
                 Object.keys(pass).forEach(greenKey => {
                     pass[greenKey].forEach(timeVal => {
                         if (!greenOccupancy[greenKey]) greenOccupancy[greenKey] = {};
@@ -395,16 +412,22 @@
             });
         });
 
-        // 3. Ordre séquentiel des colonnes F1-F7 | I1-I9 | F8-F9
+        // Ordre séquentiel des colonnes
         const greenKeysList = [
-            'f1','f2','f3','f4','f5','f6','f7', // France Aller
-            'i1','i2','i3','i4','i5','i6','i7','i8','i9', // Italie
-            'f8','f9' // France Retour
+            'f1','f2','f3','f4','f5','f6','f7',
+            'i1','i2','i3','i4','i5','i6','i7','i8','i9',
+            'f8','f9'
         ];
 
         slots.forEach(slot => {
             const deps = currentData[slot] || [];
             const tr = document.createElement('tr');
+
+            // Application de la couleur sur TOUTE la ligne si au moins une partie est présente
+            if (deps.length > 0) {
+                const primaryOrigin = deps[0].origin;
+                tr.classList.add(`row-origin-${primaryOrigin}`);
+            }
 
             let html = `<td class="time-col">${slot}</td>`;
 
@@ -425,15 +448,12 @@
                                 <option value="4" ${dep.players==4?'selected':''}>4J</option>
                             </select>
                             
-                            <select onchange="updateDep('${dateKey}','${slot}',${idx},'type',this.value)">
-                                ${dep.origin === 'FR' ? `
-                                    <option value="18_TRANS" ${dep.type=='18_TRANS'?'selected':''}>18T Transfrontalier</option>
-                                    <option value="18_FR" ${dep.type=='18_FR'?'selected':''}>18T France (2x9T)</option>
-                                    <option value="9_FR" ${dep.type=='9_FR'?'selected':''}>9T France</option>
-                                ` : `
-                                    <option value="18_TRANS" ${dep.type=='18_TRANS'?'selected':''}>18T Transfrontalier</option>
-                                    <option value="9_IT" ${dep.type=='9_IT'?'selected':''}>9T Italie</option>
-                                `}
+                            <select onchange="changeCourse('${dateKey}','${slot}',${idx},this.value)">
+                                ${COURSE_OPTIONS.map(opt => `
+                                    <option value="${opt.code}" ${dep.courseCode===opt.code?'selected':''}>
+                                        ${opt.label}
+                                    </option>
+                                `).join('')}
                             </select>
 
                             <label class="buggy-toggle">
@@ -444,26 +464,30 @@
                     </div>
                 `;
             });
+
+            // Bouton d'ajout : Désactivé si 2 parties ou plus sont déjà enregistrées
+            const isFull = deps.length >= 2;
             html += `
-                <div style="display:flex; gap:4px; justify-content:center;">
-                    <button class="btn-action btn-add" title="Départ France" onclick="addDep('${dateKey}','${slot}','FR')">+ 🇫🇷</button>
-                    <button class="btn-action btn-add" title="Départ Italie" onclick="addDep('${dateKey}','${slot}','IT')">+ 🇮🇹</button>
+                <div style="display:flex; justify-content:center;">
+                    <button class="btn-add-main" ${isFull ? 'disabled title="Maximum 2 parties par créneau"' : ''} onclick="addDep('${dateKey}','${slot}')">
+                        ${isFull ? 'Créneau complet (2/2)' : '+ Ajouter une partie'}
+                    </button>
                 </div>
             </td>`;
 
-            // Extraction des passages
+            // Calcul et affichage des passages dans les colonnes des trous
             let cols = {};
             greenKeysList.forEach(gk => cols[gk] = []);
 
             deps.forEach(dep => {
-                const pass = calculatePassages(dep.origin, dep.type, slot);
+                const pass = calculatePassages(dep.courseCode, slot);
                 Object.keys(pass).forEach(gk => {
                     pass[gk].forEach(timeVal => {
                         const conflictKey = `${gk}_${timeVal}`;
                         const conflictColor = conflictColorMap[conflictKey] || null;
 
                         cols[gk].push({
-                            startTime: slot, // <-- On stocke ici l'heure de DÉPART au lieu de l'heure de passage
+                            startTime: slot,
                             hasBuggy: dep.hasBuggy,
                             conflictColor: conflictColor
                         });
@@ -471,7 +495,7 @@
                 });
             });
 
-            // Injection des cases dans l'ordre séquentiel F1-F7 | I1-I9 | F8-F9
+            // Injection dans le DOM
             greenKeysList.forEach(gk => {
                 html += `<td>`;
                 cols[gk].forEach(item => {
@@ -485,7 +509,7 @@
                         </span>
                     `;
                 });
-                if (cols[gk].length === 0) html += `<span style="color:#e0e0e0;">-</span>`;
+                if (cols[gk].length === 0) html += `<span style="color:#b0bec5;">-</span>`;
                 html += `</td>`;
             });
 
@@ -494,15 +518,31 @@
         });
     }
 
-    window.addDep = function(dateKey, slot, origin) {
+    window.addDep = function(dateKey, slot) {
         if (!scheduleData[dateKey][slot]) scheduleData[dateKey][slot] = [];
-        scheduleData[dateKey][slot].push({ origin: origin, players: 2, type: '18_TRANS', hasBuggy: false });
+        if (scheduleData[dateKey][slot].length >= 2) return; // Blocage de sécurité
+
+        scheduleData[dateKey][slot].push({ 
+            courseCode: '18_TRANS_FR', 
+            origin: 'FR', 
+            players: 2, 
+            hasBuggy: false 
+        });
         renderPlanning();
     };
 
     window.removeDep = function(dateKey, slot, idx) {
         scheduleData[dateKey][slot].splice(idx, 1);
         renderPlanning();
+    };
+
+    window.changeCourse = function(dateKey, slot, idx, newCourseCode) {
+        const course = COURSE_OPTIONS.find(c => c.code === newCourseCode);
+        if (course) {
+            scheduleData[dateKey][slot][idx].courseCode = course.code;
+            scheduleData[dateKey][slot][idx].origin = course.origin;
+            renderPlanning();
+        }
     };
 
     window.updateDep = function(dateKey, slot, idx, field, val) {
