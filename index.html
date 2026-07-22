@@ -30,15 +30,19 @@
         header {
             background-color: var(--primary-color);
             color: white;
-            padding: 12px 20px;
+            padding: 18px 20px;
             border-radius: 8px;
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        header h1 { font-size: 20px; margin-bottom: 2px; }
-        header p { font-size: 12px; color: #d8f3dc; }
+        header h1 { 
+            font-size: 32px; 
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
 
         .controls-panel {
             background: var(--card-bg);
@@ -72,6 +76,47 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             font-size: 13px;
+        }
+
+        .add-slot-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #f1f5f9;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .add-slot-group label {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .add-slot-group select {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .btn-add-slot {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-add-slot:hover {
+            background-color: #218838;
         }
 
         .tempo-settings {
@@ -110,28 +155,12 @@
             font-weight: bold;
         }
 
-        .import-export-area {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .btn-io {
-            background-color: #4a5568;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
         .table-wrapper {
             background: var(--card-bg);
             border-radius: 8px;
             overflow-x: auto;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
         }
 
         table {
@@ -154,7 +183,28 @@
         th.section-it { background-color: var(--badge-it); }
         th.section-fr-retour { background-color: #0d1b2a; }
 
-        .time-col { font-weight: bold; font-size: 12px; background-color: #e9ecef; width: 60px; }
+        .time-col-cell {
+            background-color: #e9ecef;
+            width: 70px;
+            padding: 4px;
+        }
+
+        .time-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .btn-delete-slot {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 11px;
+            padding: 1px 3px;
+        }
 
         .departure-card {
             background: #fff;
@@ -251,13 +301,57 @@
             border-color: #79dcb1;
         }
 
+        .empty-table-msg {
+            padding: 25px;
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            font-size: 13px;
+        }
+
+        footer {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .import-export-area {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-io {
+            background-color: #4a5568;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
         .print-btn {
-            background-color: var(--secondary-color); color: white; border: none;
-            padding: 5px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px;
+            background-color: var(--secondary-color); 
+            color: white; 
+            border: none;
+            padding: 6px 12px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 12px;
         }
 
         @media print {
-            .controls-panel, .btn-action, .btn-add-main { display: none !important; }
+            .controls-panel, .btn-action, .btn-add-main, footer, .btn-delete-slot { display: none !important; }
             body { padding: 0; }
         }
     </style>
@@ -266,7 +360,6 @@
 
 <header>
     <h1>Planning Golf MTG</h1>
-    <p>Visualisation des 5 parcours & calcul exact des heures au départ de chaque trou</p>
 </header>
 
 <div class="controls-panel">
@@ -275,12 +368,12 @@
             <label for="currentDate">Date du jour :</label>
             <input type="date" id="currentDate">
         </div>
-        <div class="import-export-area">
-            <button class="btn-io" onclick="exportData()">💾 Exporter JSON</button>
-            <button class="btn-io" onclick="document.getElementById('importFile').click()">📂 Importer JSON / CSV</button>
-            <input type="file" id="importFile" accept=".json,.csv" style="display:none;" onchange="importData(event)">
+
+        <div class="add-slot-group">
+            <label for="slotWheel">Ajouter un créneau :</label>
+            <select id="slotWheel"></select>
+            <button class="btn-add-slot" onclick="addSelectedSlot()">➕ Ajouter</button>
         </div>
-        <button class="print-btn" onclick="window.print()">🖨️ Imprimer le planning</button>
     </div>
 
     <div class="tempo-settings">
@@ -300,7 +393,7 @@
     <table>
         <thead>
             <tr>
-                <th rowspan="2" class="time-col">Heure</th>
+                <th rowspan="2" style="width: 70px;">Heure</th>
                 <th rowspan="2" style="width: 250px;">Parties Démarrées</th>
                 <th colspan="7" class="section-fr-aller">Parcours France (Aller)</th>
                 <th colspan="9" class="section-it">Italie</th>
@@ -316,8 +409,17 @@
     </table>
 </div>
 
+<footer>
+    <div class="import-export-area">
+        <button class="btn-io" onclick="exportData()">💾 Exporter JSON</button>
+        <button class="btn-io" onclick="document.getElementById('importFile').click()">📂 Importer JSON / CSV</button>
+        <input type="file" id="importFile" accept=".json,.csv" style="display:none;" onchange="importData(event)">
+    </div>
+    <button class="print-btn" onclick="window.print()">🖨️ Imprimer le planning</button>
+</footer>
+
 <script>
-    const START_HOUR = 8, END_HOUR = 18, INTERVAL = 10;
+    const START_HOUR = 8, END_HOUR = 19, INTERVAL = 10;
     let scheduleData = {};
 
     const CONFLICT_COLORS = [
@@ -334,6 +436,7 @@
     ];
 
     document.addEventListener('DOMContentLoaded', () => {
+        populateSlotWheel();
         loadTempoSettings();
         loadLocalStorage();
         
@@ -343,7 +446,21 @@
         renderPlanning();
     });
 
-    // --- MEMOIRE CACHEE (LOCALSTORAGE) ---
+    function populateSlotWheel() {
+        const wheel = document.getElementById('slotWheel');
+        wheel.innerHTML = '';
+        for (let h = START_HOUR; h <= END_HOUR; h++) {
+            for (let m = 0; m < 60; m += INTERVAL) {
+                if (h === END_HOUR && m > 0) break;
+                const slot = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                const opt = document.createElement('option');
+                opt.value = slot;
+                opt.textContent = slot;
+                wheel.appendChild(opt);
+            }
+        }
+    }
+
     function saveLocalStorage() {
         localStorage.setItem('golf_schedule_data', JSON.stringify(scheduleData));
     }
@@ -370,17 +487,6 @@
                 if(parsed.tIT) document.getElementById('timeIT').value = parsed.tIT;
             } catch(e){}
         }
-    }
-
-    function generateSlots() {
-        const slots = [];
-        for (let h = START_HOUR; h <= END_HOUR; h++) {
-            for (let m = 0; m < 60; m += INTERVAL) {
-                if (h === END_HOUR && m > 0) break;
-                slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
-            }
-        }
-        return slots;
     }
 
     function addMinutes(timeStr, mins) {
@@ -437,13 +543,46 @@
         return res;
     }
 
+    function addSelectedSlot() {
+        const dateKey = document.getElementById('currentDate').value;
+        const slot = document.getElementById('slotWheel').value;
+
+        if (!scheduleData[dateKey]) scheduleData[dateKey] = {};
+        if (!scheduleData[dateKey][slot]) {
+            scheduleData[dateKey][slot] = [];
+        }
+
+        saveLocalStorage();
+        renderPlanning();
+    }
+
+    function deleteSlot(dateKey, slot) {
+        if (scheduleData[dateKey] && scheduleData[dateKey][slot] !== undefined) {
+            delete scheduleData[dateKey][slot];
+            saveLocalStorage();
+            renderPlanning();
+        }
+    }
+
     function renderPlanning() {
         const dateKey = document.getElementById('currentDate').value;
         if (!scheduleData[dateKey]) scheduleData[dateKey] = {};
         const currentData = scheduleData[dateKey];
-        const slots = generateSlots();
+        
+        const slots = Object.keys(currentData).sort();
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
+
+        if (slots.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="20" class="empty-table-msg">
+                        Aucun créneau sélectionné. Choisissez un horaire ci-dessus et cliquez sur <strong>➕ Ajouter</strong> pour commencer le planning.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
 
         const greenOccupancy = {};
 
@@ -483,7 +622,14 @@
             const deps = currentData[slot] || [];
             const tr = document.createElement('tr');
 
-            let html = `<td class="time-col">${slot}</td>`;
+            let html = `
+                <td class="time-col-cell">
+                    <div class="time-header">
+                        <span>${slot}</span>
+                        <button class="btn-delete-slot" title="Supprimer ce créneau" onclick="deleteSlot('${dateKey}','${slot}')">🗑️</button>
+                    </div>
+                </td>
+            `;
 
             html += `<td>`;
             deps.forEach((dep, idx) => {
