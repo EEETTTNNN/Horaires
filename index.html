@@ -429,7 +429,7 @@
 
     const COURSE_OPTIONS = [
         { code: '18_TRANS_FR', origin: 'FR', label: '18T Transfrontalier (Dép. France)' },
-        { code: '2x9_FR',       origin: 'FR', label: '18T France (2x9T)' },
+        { code: '2x9_FR',       origin: 'FR', label: '2x9 trous' },
         { code: '9_FR',        origin: 'FR', label: '9T France' },
         { code: '18_TRANS_IT', origin: 'IT', label: '18T Transfrontalier (Dép. Italie)' },
         { code: '9_IT',        origin: 'IT', label: '9T Italie' }
@@ -493,6 +493,11 @@
         const [h, m] = timeStr.split(':').map(Number);
         const d = new Date(2000, 0, 1, h, m + mins);
         return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+
+    function timeToMinutes(timeStr) {
+        const [h, m] = timeStr.split(':').map(Number);
+        return h * 60 + m;
     }
 
     function calculatePassages(courseCode, startTime) {
@@ -584,39 +589,54 @@
             return;
         }
 
-        const greenOccupancy = {};
-
-        slots.forEach(slot => {
-            (currentData[slot] || []).forEach(dep => {
-                const pass = calculatePassages(dep.courseCode, slot);
-                Object.keys(pass).forEach(greenKey => {
-                    pass[greenKey].forEach(timeVal => {
-                        if (!greenOccupancy[greenKey]) greenOccupancy[greenKey] = {};
-                        if (!greenOccupancy[greenKey][timeVal]) greenOccupancy[greenKey][timeVal] = 0;
-                        greenOccupancy[greenKey][timeVal]++;
-                    });
-                });
-            });
-        });
-
-        const conflictColorMap = {};
-        let colorIdx = 0;
-
-        Object.keys(greenOccupancy).forEach(greenKey => {
-            Object.keys(greenOccupancy[greenKey]).forEach(timeVal => {
-                if (greenOccupancy[greenKey][timeVal] > 1) {
-                    const conflictKey = `${greenKey}_${timeVal}`;
-                    conflictColorMap[conflictKey] = CONFLICT_COLORS[colorIdx % CONFLICT_COLORS.length];
-                    colorIdx++;
-                }
-            });
-        });
-
         const greenKeysList = [
             'f1','f2','f3','f4','f5','f6','f7',
             'i1','i2','i3','i4','i5','i6','i7','i8','i9',
             'f8','f9'
         ];
+
+        // 1. Collecter tous les passages par trou
+        const allPassagesByGreen = {};
+        greenKeysList.forEach(gk => allPassagesByGreen[gk] = []);
+
+        slots.forEach(slot => {
+            (currentData[slot] || []).forEach(dep => {
+                const pass = calculatePassages(dep.courseCode, slot);
+                Object.keys(pass).forEach(gk => {
+                    pass[gk].forEach(timeVal => {
+                        allPassagesByGreen[gk].push({
+                            slot: slot,
+                            timeVal: timeVal,
+                            mins: timeToMinutes(timeVal)
+                        });
+                    });
+                });
+            });
+        });
+
+        // 2. Détecter les conflits avec une marge de 5 minutes (< 5 min de différence)
+        const conflictColorMap = {};
+        let colorIdx = 0;
+
+        greenKeysList.forEach(gk => {
+            const list = allPassagesByGreen[gk];
+            for (let i = 0; i < list.length; i++) {
+                for (let j = i + 1; j < list.length; j++) {
+                    const diff = Math.abs(list[i].mins - list[j].mins);
+                    if (diff < 5) {
+                        const key1 = `${gk}_${list[i].timeVal}`;
+                        const key2 = `${gk}_${list[j].timeVal}`;
+                        
+                        let assignColor = conflictColorMap[key1] || conflictColorMap[key2] || CONFLICT_COLORS[colorIdx % CONFLICT_COLORS.length];
+                        if (!conflictColorMap[key1] && !conflictColorMap[key2]) {
+                            colorIdx++;
+                        }
+                        conflictColorMap[key1] = assignColor;
+                        conflictColorMap[key2] = assignColor;
+                    }
+                }
+            }
+        });
 
         slots.forEach(slot => {
             const deps = currentData[slot] || [];
