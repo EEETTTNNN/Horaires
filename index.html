@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planning Golf Franco-Italien - Regulating Tool</title>
+    <title>Planning Golf Franco-Italien - Horaires de Départ</title>
     <style>
         :root {
             --primary-color: #1b4332;
@@ -132,8 +132,9 @@
         }
 
         th { background-color: var(--secondary-color); color: white; font-weight: 600; font-size: 11px; }
-        th.section-fr { background-color: var(--badge-fr); }
+        th.section-fr-aller { background-color: var(--badge-fr); }
         th.section-it { background-color: var(--badge-it); }
+        th.section-fr-retour { background-color: #0d1b2a; }
 
         .time-col { font-weight: bold; font-size: 12px; background-color: #e9ecef !important; width: 60px; }
 
@@ -222,8 +223,8 @@
 <body>
 
 <header>
-    <h1>Planning Golf Franco-Italien - Alertes Visuelles Flashy</h1>
-    <p>Coloration intégrale des cases en conflit pour un repérage immédiat</p>
+    <h1>Planning Golf Franco-Italien - Affichage des Heures de Départ</h1>
+    <p>Visualisation des heures de départ sur chaque green + détection flashy des conflits</p>
 </header>
 
 <div class="controls-panel">
@@ -254,12 +255,14 @@
             <tr>
                 <th rowspan="2" class="time-col">Heure</th>
                 <th rowspan="2" style="width: 230px;">Parties Démarrées</th>
-                <th colspan="9" class="section-fr">Greens France (F1 à F9)</th>
-                <th colspan="9" class="section-it">Greens Italie (I1 à I9)</th>
+                <th colspan="7" class="section-fr-aller">Parcours France (Aller)</th>
+                <th colspan="9" class="section-it">Italie</th>
+                <th colspan="2" class="section-fr-retour">Retour France</th>
             </tr>
             <tr>
-                <th>F1</th><th>F2</th><th>F3</th><th>F4</th><th>F5</th><th>F6</th><th>F7</th><th>F8</th><th>F9</th>
+                <th>F1</th><th>F2</th><th>F3</th><th>F4</th><th>F5</th><th>F6</th><th>F7</th>
                 <th>I1</th><th>I2</th><th>I3</th><th>I4</th><th>I5</th><th>I6</th><th>I7</th><th>I8</th><th>I9</th>
+                <th>F8</th><th>F9</th>
             </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -270,7 +273,7 @@
     const START_HOUR = 8, END_HOUR = 18, INTERVAL = 10;
     let scheduleData = {};
 
-    // Palette Haute Visibilité : Couleurs Flashy / Néon
+    // Palette Haute Visibilité Néon
     const CONFLICT_COLORS = [
         '#FF0055', // Magenta Néon
         '#00E5FF', // Cyan Flash
@@ -362,7 +365,7 @@
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
 
-        // 1. Détection des occupations
+        // 1. Détection des occupations globale (calcul sur l'heure réelle de passage)
         const greenOccupancy = {};
 
         slots.forEach(slot => {
@@ -378,7 +381,7 @@
             });
         });
 
-        // 2. Attribution des couleurs néon par conflit d'horaire
+        // 2. Attribution des couleurs par conflit
         const conflictColorMap = {};
         let colorIdx = 0;
 
@@ -392,10 +395,11 @@
             });
         });
 
-        // 3. Construction des lignes
+        // 3. Ordre séquentiel des colonnes F1-F7 | I1-I9 | F8-F9
         const greenKeysList = [
-            'f1','f2','f3','f4','f5','f6','f7','f8','f9',
-            'i1','i2','i3','i4','i5','i6','i7','i8','i9'
+            'f1','f2','f3','f4','f5','f6','f7', // France Aller
+            'i1','i2','i3','i4','i5','i6','i7','i8','i9', // Italie
+            'f8','f9' // France Retour
         ];
 
         slots.forEach(slot => {
@@ -459,7 +463,7 @@
                         const conflictColor = conflictColorMap[conflictKey] || null;
 
                         cols[gk].push({
-                            time: timeVal,
+                            startTime: slot, // <-- On stocke ici l'heure de DÉPART au lieu de l'heure de passage
                             hasBuggy: dep.hasBuggy,
                             conflictColor: conflictColor
                         });
@@ -467,18 +471,17 @@
                 });
             });
 
-            // Injection des cases dans le tableau
+            // Injection des cases dans l'ordre séquentiel F1-F7 | I1-I9 | F8-F9
             greenKeysList.forEach(gk => {
                 html += `<td>`;
                 cols[gk].forEach(item => {
-                    // Style Flashy complet si conflit
                     let cellStyle = item.conflictColor 
                         ? `background-color: ${item.conflictColor}; color: #000; font-weight: 900; border: 1px solid #000; box-shadow: 0 0 4px rgba(0,0,0,0.3);` 
                         : '';
                     
                     html += `
                         <span class="passage-item" style="${cellStyle}">
-                            ${item.hasBuggy ? '🛺 ' : ''}${item.time}
+                            ${item.hasBuggy ? '🛺 ' : ''}${item.startTime}
                         </span>
                     `;
                 });
