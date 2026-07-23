@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Planning Golf MTG v.1.9</title>
+    <title>Planning Golf MTG v.2.0</title>
     <style>
         :root {
             --primary-color: #1b4332;
@@ -176,6 +176,7 @@
             font-size: 10px;
         }
 
+        /* CORRECTION MAJEURE DU CONTENEUR POUR L'AFFICHAGE */
         .table-outer-wrapper {
             background: var(--card-bg);
             border-radius: 8px;
@@ -183,14 +184,16 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             margin-bottom: 10px;
             width: 100%;
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: hidden;
+            position: relative;
         }
 
         .scaled-table-container {
             transform: scale(0.44);
             transform-origin: top left;
             width: 227.27%;
-            margin-bottom: -128%;
+            min-height: 250px; /* Garantit que le conteneur reste visible dès la 1ère ligne */
         }
 
         table {
@@ -408,7 +411,7 @@
 
 <header>
     <h1>Planning Golf MTG</h1>
-    <span class="version-badge">v.1.9</span>
+    <span class="version-badge">v.2.0</span>
 </header>
 
 <div class="controls-panel">
@@ -440,9 +443,9 @@
     </div>
 </div>
 
-<div class="table-outer-wrapper">
-    <div class="scaled-table-container">
-        <table>
+<div class="table-outer-wrapper" id="tableWrapper">
+    <div class="scaled-table-container" id="scaledContainer">
+        <table id="mainTable">
             <thead>
                 <tr>
                     <th rowspan="2" style="width: 50px;">Heure</th>
@@ -634,7 +637,6 @@
             scheduleData[dateKey][slot] = [];
         }
 
-        // Si le créneau est vide, on y met immédiatement une partie France
         if (scheduleData[dateKey][slot].length === 0) {
             scheduleData[dateKey][slot].push({ 
                 courseCode: '18_TRANS_FR', 
@@ -644,13 +646,23 @@
             });
         }
 
-        // Fait passer la molette au créneau suivant (+10min) automatiquement
         if (slotSelect.selectedIndex < slotSelect.options.length - 1) {
             slotSelect.selectedIndex += 1;
         }
 
         saveLocalStorage();
         renderPlanning();
+    }
+
+    function adjustContainerHeight() {
+        const table = id('mainTable');
+        const outer = id('tableWrapper');
+        if (table && outer) {
+            // Ajustement dynamique de la hauteur du conteneur selon la taille exacte du tableau
+            const tableHeight = table.offsetHeight;
+            const scaledHeight = tableHeight * 0.44;
+            outer.style.height = `${Math.max(scaledHeight + 10, 150)}px`;
+        }
     }
 
     function deleteSlot(dateKey, slot) {
@@ -693,6 +705,7 @@
                     </td>
                 </tr>
             `;
+            adjustContainerHeight();
             return;
         }
 
@@ -838,6 +851,8 @@
             tr.innerHTML = html;
             tbody.appendChild(tr);
         });
+
+        setTimeout(adjustContainerHeight, 50);
     }
 
     window.addDep = function(dateKey, slot) {
