@@ -413,6 +413,7 @@
     <div class="import-export-area">
         <button class="btn-io" onclick="exportData()">💾 Exporter JSON</button>
         <button class="btn-io" onclick="document.getElementById('importFile').click()">📂 Importer JSON / CSV</button>
+        <!-- FIX 1 : Extension des types mime pour dégriser sur iOS -->
         <input type="file" id="importFile" accept=".json,.csv,.txt,application/json,text/csv,text/plain" style="display:none;" onchange="importData(event)">
     </div>
     <button class="print-btn" onclick="window.print()">🖨️ Imprimer le planning</button>
@@ -614,7 +615,7 @@
             });
         });
 
-        // 2. Détecter les conflits avec une marge de 5 minutes (< 5 min de différence)
+        // 2. Détecter les conflits avec une marge de 5 minutes (< 5 min)
         const conflictColorMap = {};
         let colorIdx = 0;
 
@@ -790,6 +791,7 @@
         downloadAnchor.remove();
     }
 
+    // FIX 2 : Fonction d'importation globale mise à jour pour basculer sur la date importée
     function importData(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -797,26 +799,43 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             const content = e.target.result;
-            if (file.name.endsWith('.json')) {
-                try {
-                    const imported = JSON.parse(content);
-                    scheduleData = { ...scheduleData, ...imported };
-                    saveLocalStorage();
-                    renderPlanning();
-                    alert("Importation JSON réussie !");
-                } catch(err) {
-                    alert("Erreur lors de la lecture du fichier JSON.");
+            
+            // Tente de lire en JSON
+            try {
+                const importedData = JSON.parse(content);
+                
+                // Fusion des données
+                scheduleData = { ...scheduleData, ...importedData };
+                saveLocalStorage();
+
+                // On bascule le sélecteur sur la première date trouvée dans le fichier
+                const firstImportedDate = Object.keys(importedData)[0];
+                if (firstImportedDate) {
+                    document.getElementById('currentDate').value = firstImportedDate;
                 }
-            } else if (file.name.endsWith('.csv')) {
-                parseCSV(content);
+
+                renderPlanning();
+                alert("Importation JSON réussie !");
+            } catch(err) {
+                // Si l'analyse JSON échoue, on tente de lire comme un CSV
+                if (file.name.endsWith('.csv') || content.includes(';')) {
+                    parseCSV(content);
+                } else {
+                    alert("Erreur : Format de fichier non reconnu ou syntaxe invalide.");
+                }
             }
+            
+            // Réinitialise la valeur de l'input pour pouvoir importer à nouveau
+            event.target.value = '';
         };
+
         reader.readAsText(file);
     }
 
     function parseCSV(csvText) {
         const lines = csvText.split('\n');
         let count = 0;
+        let lastDateFound = null;
 
         lines.forEach((line, index) => {
             if (index === 0 && line.toLowerCase().includes('heure')) return;
@@ -840,10 +859,15 @@
                             hasBuggy: hasBuggy
                         });
                         count++;
+                        lastDateFound = dateKey;
                     }
                 }
             }
         });
+
+        if (lastDateFound) {
+            document.getElementById('currentDate').value = lastDateFound;
+        }
 
         saveLocalStorage();
         renderPlanning();
