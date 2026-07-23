@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Planning Golf MTG v.2.0</title>
+
+    <link rel="apple-touch-icon" href="https://i.imgur.com/hH0e6ls.png">
+
     <style>
         :root {
             --primary-color: #1b4332;
@@ -176,7 +179,6 @@
             font-size: 10px;
         }
 
-        /* CORRECTION MAJEURE DU CONTENEUR POUR L'AFFICHAGE */
         .table-outer-wrapper {
             background: var(--card-bg);
             border-radius: 8px;
@@ -193,7 +195,7 @@
             transform: scale(0.44);
             transform-origin: top left;
             width: 227.27%;
-            min-height: 250px; /* Garantit que le conteneur reste visible dès la 1ère ligne */
+            min-height: 250px;
         }
 
         table {
@@ -658,7 +660,6 @@
         const table = id('mainTable');
         const outer = id('tableWrapper');
         if (table && outer) {
-            // Ajustement dynamique de la hauteur du conteneur selon la taille exacte du tableau
             const tableHeight = table.offsetHeight;
             const scaledHeight = tableHeight * 0.44;
             outer.style.height = `${Math.max(scaledHeight + 10, 150)}px`;
