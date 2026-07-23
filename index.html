@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Planning Golf MTG v.1.3</title>
+    <title>Planning Golf MTG v.1.4</title>
     <style>
         :root {
             --primary-color: #1b4332;
@@ -23,14 +23,14 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            padding: 6px;
+            padding: 8px;
             line-height: 1.2;
         }
 
         header {
             background-color: var(--primary-color);
             color: white;
-            padding: 10px 12px;
+            padding: 12px 15px;
             border-radius: 8px;
             text-align: center;
             margin-bottom: 8px;
@@ -39,7 +39,7 @@
         }
 
         header h1 { 
-            font-size: 20px; 
+            font-size: 22px; 
             font-weight: 800;
             white-space: nowrap;
             letter-spacing: 0.5px;
@@ -167,7 +167,7 @@
         }
 
         .tempo-field input[type="number"] {
-            width: 36px;
+            width: 40px;
             padding: 2px;
             border: 1px solid var(--border-color);
             border-radius: 4px;
@@ -176,59 +176,58 @@
             font-size: 10px;
         }
 
-        /* Cadre du tableur sans défilement superflu */
-        .table-wrapper {
+        /* Conteneur principal fixe */
+        .table-outer-wrapper {
             background: var(--card-bg);
             border-radius: 8px;
-            overflow: hidden;
             border: 1px solid var(--border-color);
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             margin-bottom: 10px;
             width: 100%;
+            overflow: hidden;
+        }
+
+        /* Zone mise à l'échelle pour la vue globale lisible */
+        .scaled-table-container {
+            transform: scale(0.44);
+            transform-origin: top left;
+            width: 227.27%; /* 100 / 0.44 */
+            margin-bottom: -128%; /* Compense la réduction de hauteur due au scale */
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 8px;
+            font-size: 10px;
             table-layout: fixed;
         }
 
         th, td {
             border: 1px solid var(--border-color);
-            padding: 1px;
+            padding: 2px 1px;
             text-align: center;
             vertical-align: middle;
             background-color: #ffffff;
             word-wrap: break-word;
         }
 
-        th { 
-            background-color: var(--secondary-color); 
-            color: white; 
-            font-weight: 600; 
-            font-size: 7.5px;
-            padding: 2px 0;
-        }
-        
+        th { background-color: var(--secondary-color); color: white; font-weight: 600; font-size: 9px; }
         th.section-fr-aller { background-color: var(--badge-fr); }
         th.section-it { background-color: var(--badge-it); }
         th.section-fr-retour { background-color: #0d1b2a; }
 
         .time-col-cell {
             background-color: #e9ecef;
-            width: 32px;
-            padding: 1px;
+            width: 45px;
+            padding: 2px;
         }
 
         .time-header {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             font-weight: bold;
-            font-size: 8px;
-            gap: 1px;
+            font-size: 10px;
         }
 
         .btn-delete-slot {
@@ -236,25 +235,24 @@
             border: none;
             color: #dc3545;
             cursor: pointer;
-            font-size: 8px;
+            font-size: 9px;
             padding: 0;
-            line-height: 1;
         }
 
         .departure-card {
             background: #fff;
             border: 1px solid var(--border-color);
-            border-radius: 2px;
-            padding: 1px;
+            border-radius: 3px;
+            padding: 2px;
             margin-bottom: 2px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
-            gap: 1px;
+            gap: 2px;
         }
 
-        .departure-card.origin-FR { border-left: 2px solid var(--badge-fr); }
-        .departure-card.origin-IT { border-left: 2px solid var(--badge-it); }
+        .departure-card.origin-FR { border-left: 3px solid var(--badge-fr); }
+        .departure-card.origin-IT { border-left: 3px solid var(--badge-it); }
 
         .departure-card.has-buggy {
             background-color: var(--buggy-bg);
@@ -263,10 +261,10 @@
         .badge-container { display: flex; align-items: center; justify-content: space-between; }
 
         .origin-badge {
-            font-size: 6px;
+            font-size: 7px;
             font-weight: bold;
             color: white;
-            padding: 1px;
+            padding: 1px 2px;
             border-radius: 2px;
             text-transform: uppercase;
         }
@@ -279,7 +277,7 @@
             display: flex;
             align-items: center;
             gap: 1px;
-            font-size: 7px;
+            font-size: 8px;
             font-weight: bold;
             cursor: pointer;
             background: #f8f9fa;
@@ -289,25 +287,23 @@
         }
 
         select {
-            padding: 0;
+            padding: 1px;
             border-radius: 2px;
             border: 1px solid var(--border-color);
-            font-size: 7px;
+            font-size: 8px;
             background: white;
-            max-width: 100%;
         }
 
-        .btn-action { background: none; border: none; cursor: pointer; font-size: 8px; }
+        .btn-action { background: none; border: none; cursor: pointer; font-size: 9px; }
         .btn-add-main {
             background-color: #28a745;
             color: white;
             border: none;
-            padding: 2px 3px;
-            border-radius: 2px;
+            padding: 2px 4px;
+            border-radius: 3px;
             font-weight: bold;
-            font-size: 7px;
+            font-size: 9px;
             cursor: pointer;
-            width: 100%;
         }
         .btn-add-main:disabled {
             background-color: #ccc;
@@ -318,15 +314,14 @@
         .passage-item {
             display: block;
             font-family: monospace;
-            font-size: 7px;
+            font-size: 9px;
             font-weight: bold;
-            padding: 1px 0;
+            padding: 2px 1px;
             margin: 1px 0;
             border-radius: 2px;
             background-color: #ffffff;
             border: 1px solid #ced4da;
             color: #000;
-            white-space: nowrap;
         }
 
         .passage-item.item-origin-FR {
@@ -348,20 +343,20 @@
 
         footer {
             background: var(--card-bg);
-            padding: 8px;
+            padding: 10px;
             border-radius: 8px;
             margin-top: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
             align-items: center;
             justify-content: space-between;
         }
 
         .import-export-area {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             align-items: center;
         }
 
@@ -369,9 +364,9 @@
             background-color: #4a5568;
             color: white;
             border: none;
-            padding: 4px 8px;
+            padding: 5px 10px;
             border-radius: 4px;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: bold;
             cursor: pointer;
         }
@@ -380,16 +375,17 @@
             background-color: var(--secondary-color); 
             color: white; 
             border: none;
-            padding: 4px 8px; 
+            padding: 5px 10px; 
             border-radius: 4px; 
             cursor: pointer; 
             font-weight: bold; 
-            font-size: 10px;
+            font-size: 11px;
         }
 
         @media print {
             .controls-panel, .btn-action, .btn-add-main, footer, .btn-delete-slot { display: none !important; }
             body { padding: 0; }
+            .scaled-table-container { transform: scale(1) !important; width: 100% !important; margin-bottom: 0 !important; }
         }
     </style>
 </head>
@@ -397,7 +393,7 @@
 
 <header>
     <h1>Planning Golf MTG</h1>
-    <span class="version-badge">v.1.3</span>
+    <span class="version-badge">v.1.4</span>
 </header>
 
 <div class="controls-panel">
@@ -429,24 +425,26 @@
     </div>
 </div>
 
-<div class="table-wrapper">
-    <table>
-        <thead>
-            <tr>
-                <th rowspan="2" style="width: 32px;">H</th>
-                <th rowspan="2" style="width: 85px;">Parties Démarrées</th>
-                <th colspan="7" class="section-fr-aller">Parcours France (Aller)</th>
-                <th colspan="9" class="section-it">Italie</th>
-                <th colspan="2" class="section-fr-retour">Retour FR</th>
-            </tr>
-            <tr>
-                <th>F1</th><th>F2</th><th>F3</th><th>F4</th><th>F5</th><th>F6</th><th>F7</th>
-                <th>I1</th><th>I2</th><th>I3</th><th>I4</th><th>I5</th><th>I6</th><th>I7</th><th>I8</th><th>I9</th>
-                <th>F8</th><th>F9</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
+<div class="table-outer-wrapper">
+    <div class="scaled-table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th rowspan="2" style="width: 50px;">Heure</th>
+                    <th rowspan="2" style="width: 140px;">Parties Démarrées</th>
+                    <th colspan="7" class="section-fr-aller">Parcours France (Aller)</th>
+                    <th colspan="9" class="section-it">Italie</th>
+                    <th colspan="2" class="section-fr-retour">Retour France</th>
+                </tr>
+                <tr>
+                    <th>F1</th><th>F2</th><th>F3</th><th>F4</th><th>F5</th><th>F6</th><th>F7</th>
+                    <th>I1</th><th>I2</th><th>I3</th><th>I4</th><th>I5</th><th>I6</th><th>I7</th><th>I8</th><th>I9</th>
+                    <th>F8</th><th>F9</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
 </div>
 
 <footer>
