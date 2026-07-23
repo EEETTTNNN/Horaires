@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planning Golf MTG</title>
+    <title>Planning Golf MTG v.1.0</title>
     <style>
         :root {
             --primary-color: #1b4332;
@@ -35,6 +35,10 @@
             text-align: center;
             margin-bottom: 15px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
         }
 
         header h1 { 
@@ -42,6 +46,16 @@
             font-weight: 800;
             letter-spacing: 0.5px;
             margin: 0;
+        }
+
+        .version-badge {
+            background-color: #2a9d8f;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 12px;
+            vertical-align: middle;
         }
 
         .controls-panel {
@@ -360,6 +374,7 @@
 
 <header>
     <h1>Planning Golf MTG</h1>
+    <span class="version-badge">v.1.0</span>
 </header>
 
 <div class="controls-panel">
@@ -413,7 +428,6 @@
     <div class="import-export-area">
         <button class="btn-io" onclick="exportData()">💾 Exporter JSON</button>
         <button class="btn-io" onclick="document.getElementById('importFile').click()">📂 Importer JSON / CSV</button>
-        <!-- FIX 1 : Extension des types mime pour dégriser sur iOS -->
         <input type="file" id="importFile" accept=".json,.csv,.txt,application/json,text/csv,text/plain" style="display:none;" onchange="importData(event)">
     </div>
     <button class="print-btn" onclick="window.print()">🖨️ Imprimer le planning</button>
@@ -596,7 +610,6 @@
             'f8','f9'
         ];
 
-        // 1. Collecter tous les passages par trou
         const allPassagesByGreen = {};
         greenKeysList.forEach(gk => allPassagesByGreen[gk] = []);
 
@@ -615,7 +628,6 @@
             });
         });
 
-        // 2. Détecter les conflits avec une marge de 5 minutes (< 5 min)
         const conflictColorMap = {};
         let colorIdx = 0;
 
@@ -791,42 +803,55 @@
         downloadAnchor.remove();
     }
 
-    // FIX 2 : Fonction d'importation globale mise à jour pour basculer sur la date importée
+    // FONCTION D'IMPORTATION AVEC ALERTES SOLICITÉES
     function importData(event) {
         const file = event.target.files[0];
-        if (!file) return;
+        if (!file) {
+            alert("erreur d’ajout");
+            return;
+        }
 
         const reader = new FileReader();
         reader.onload = function(e) {
             const content = e.target.result;
             
-            // Tente de lire en JSON
             try {
-                const importedData = JSON.parse(content);
-                
-                // Fusion des données
-                scheduleData = { ...scheduleData, ...importedData };
-                saveLocalStorage();
+                let parsed = false;
 
-                // On bascule le sélecteur sur la première date trouvée dans le fichier
-                const firstImportedDate = Object.keys(importedData)[0];
-                if (firstImportedDate) {
-                    document.getElementById('currentDate').value = firstImportedDate;
+                // Tente de parser en JSON
+                try {
+                    const importedData = JSON.parse(content);
+                    scheduleData = { ...scheduleData, ...importedData };
+                    
+                    const firstImportedDate = Object.keys(importedData)[0];
+                    if (firstImportedDate) {
+                        document.getElementById('currentDate').value = firstImportedDate;
+                    }
+                    parsed = true;
+                } catch(jsonErr) {
+                    // Si échec JSON, tente le parse CSV
+                    if (file.name.endsWith('.csv') || content.includes(';')) {
+                        parsed = parseCSV(content);
+                    }
                 }
 
-                renderPlanning();
-                alert("Importation JSON réussie !");
-            } catch(err) {
-                // Si l'analyse JSON échoue, on tente de lire comme un CSV
-                if (file.name.endsWith('.csv') || content.includes(';')) {
-                    parseCSV(content);
+                if (parsed) {
+                    saveLocalStorage();
+                    renderPlanning();
+                    alert("fichier ajouté");
                 } else {
-                    alert("Erreur : Format de fichier non reconnu ou syntaxe invalide.");
+                    alert("erreur d’ajout");
                 }
+
+            } catch(err) {
+                alert("erreur d’ajout");
             }
             
-            // Réinitialise la valeur de l'input pour pouvoir importer à nouveau
             event.target.value = '';
+        };
+
+        reader.onerror = function() {
+            alert("erreur d’ajout");
         };
 
         reader.readAsText(file);
@@ -869,9 +894,7 @@
             document.getElementById('currentDate').value = lastDateFound;
         }
 
-        saveLocalStorage();
-        renderPlanning();
-        alert(`${count} partie(s) importée(s) depuis le CSV avec succès !`);
+        return count > 0;
     }
 </script>
 
