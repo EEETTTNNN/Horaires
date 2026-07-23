@@ -2,8 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
-    <title>Planning Golf MTG v.1.1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Planning Golf MTG v.1.2</title>
     <style>
         :root {
             --primary-color: #1b4332;
@@ -25,9 +25,9 @@
             color: var(--text-color);
             padding: 8px;
             line-height: 1.2;
+            touch-action: manipulation;
         }
 
-        /* En-tête vert avec v.1.1 en bas à droite */
         header {
             background-color: var(--primary-color);
             color: white;
@@ -70,14 +70,12 @@
             gap: 6px;
         }
 
-        /* Alignement compact sur une seule ligne Date + Créneau */
         .top-row-compact {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 6px;
             flex-wrap: nowrap;
-            overflow-x: auto;
         }
 
         .date-picker-group {
@@ -134,7 +132,6 @@
             gap: 2px;
         }
 
-        /* Cadenceur sur une seule ligne */
         .tempo-settings-inline {
             background-color: #eef4f1;
             padding: 6px 8px;
@@ -145,7 +142,6 @@
             justify-content: space-between;
             gap: 8px;
             flex-wrap: nowrap;
-            overflow-x: auto;
         }
 
         .tempo-settings-inline h3 {
@@ -181,24 +177,73 @@
             font-size: 10px;
         }
 
-        /* Tableur indépendant avec dézoom gestuel */
-        .table-wrapper {
+        /* Barre de contrôle du zoom spécifique au tableau */
+        .zoom-controls-bar {
+            background: #e2e8f0;
+            padding: 6px 10px;
+            border-radius: 6px 6px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+        }
+
+        .zoom-controls-bar label {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .zoom-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-zoom {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-zoom-reset {
+            background-color: #0d1b2a;
+        }
+
+        .zoom-slider {
+            width: 90px;
+        }
+
+        /* Conteneur fixe, bloqué contre le swipe */
+        .table-wrapper-locked {
             background: var(--card-bg);
-            border-radius: 8px;
-            overflow-x: auto;
-            overflow-y: auto;
-            max-height: 75vh;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden; /* Désactive le défilement et le swipe */
+            border: 1px solid var(--border-color);
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             margin-bottom: 10px;
-            touch-action: pan-x pan-y pinch-zoom;
-            -webkit-overflow-scrolling: touch;
+            width: 100%;
+        }
+
+        /* Zone zoomable en CSS scale */
+        .zoomable-table-container {
+            transform-origin: top left;
+            transition: transform 0.15s ease-out;
+            width: 100%;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1400px;
             font-size: 10px;
+            table-layout: fixed;
         }
 
         th, td {
@@ -207,16 +252,17 @@
             text-align: center;
             vertical-align: middle;
             background-color: #ffffff;
+            word-wrap: break-word;
         }
 
-        th { background-color: var(--secondary-color); color: white; font-weight: 600; font-size: 10px; }
+        th { background-color: var(--secondary-color); color: white; font-weight: 600; font-size: 9px; }
         th.section-fr-aller { background-color: var(--badge-fr); }
         th.section-it { background-color: var(--badge-it); }
         th.section-fr-retour { background-color: #0d1b2a; }
 
         .time-col-cell {
             background-color: #e9ecef;
-            width: 60px;
+            width: 45px;
             padding: 2px;
         }
 
@@ -225,7 +271,7 @@
             align-items: center;
             justify-content: space-between;
             font-weight: bold;
-            font-size: 11px;
+            font-size: 10px;
         }
 
         .btn-delete-slot {
@@ -233,14 +279,14 @@
             border: none;
             color: #dc3545;
             cursor: pointer;
-            font-size: 10px;
-            padding: 0 2px;
+            font-size: 9px;
+            padding: 0;
         }
 
         .departure-card {
             background: #fff;
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 3px;
             padding: 2px;
             margin-bottom: 2px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
@@ -259,49 +305,48 @@
         .badge-container { display: flex; align-items: center; justify-content: space-between; }
 
         .origin-badge {
-            font-size: 8px;
+            font-size: 7px;
             font-weight: bold;
             color: white;
-            padding: 1px 3px;
+            padding: 1px 2px;
             border-radius: 2px;
             text-transform: uppercase;
         }
         .origin-FR { background-color: var(--badge-fr); }
         .origin-IT { background-color: var(--badge-it); }
 
-        .card-row { display: flex; gap: 2px; align-items: center; justify-content: space-between; }
+        .card-row { display: flex; gap: 1px; align-items: center; justify-content: space-between; }
 
         .buggy-toggle {
             display: flex;
             align-items: center;
             gap: 1px;
-            font-size: 9px;
+            font-size: 8px;
             font-weight: bold;
             cursor: pointer;
             background: #f8f9fa;
-            padding: 1px 2px;
+            padding: 1px;
             border-radius: 2px;
             border: 1px solid #ced4da;
         }
 
         select {
-            padding: 1px 2px;
+            padding: 1px;
             border-radius: 2px;
             border: 1px solid var(--border-color);
-            font-size: 9px;
+            font-size: 8px;
             background: white;
-            max-width: 140px;
         }
 
-        .btn-action { background: none; border: none; cursor: pointer; font-size: 10px; }
+        .btn-action { background: none; border: none; cursor: pointer; font-size: 9px; }
         .btn-add-main {
             background-color: #28a745;
             color: white;
             border: none;
-            padding: 2px 6px;
+            padding: 2px 4px;
             border-radius: 3px;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 9px;
             cursor: pointer;
         }
         .btn-add-main:disabled {
@@ -313,11 +358,11 @@
         .passage-item {
             display: block;
             font-family: monospace;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: bold;
             padding: 2px 1px;
             margin: 1px 0;
-            border-radius: 3px;
+            border-radius: 2px;
             background-color: #ffffff;
             border: 1px solid #ced4da;
             color: #000;
@@ -337,7 +382,7 @@
             text-align: center;
             color: #6c757d;
             font-style: italic;
-            font-size: 12px;
+            font-size: 11px;
         }
 
         footer {
@@ -382,8 +427,9 @@
         }
 
         @media print {
-            .controls-panel, .btn-action, .btn-add-main, footer, .btn-delete-slot { display: none !important; }
+            .controls-panel, .zoom-controls-bar, .btn-action, .btn-add-main, footer, .btn-delete-slot { display: none !important; }
             body { padding: 0; }
+            .zoomable-table-container { transform: scale(1) !important; width: 100% !important; }
         }
     </style>
 </head>
@@ -391,11 +437,10 @@
 
 <header>
     <h1>Planning Golf MTG</h1>
-    <span class="version-badge">v.1.1</span>
+    <span class="version-badge">v.1.2</span>
 </header>
 
 <div class="controls-panel">
-    <!-- Date + Créneau sur la même ligne -->
     <div class="top-row-compact">
         <div class="date-picker-group">
             <label for="currentDate">Date :</label>
@@ -409,7 +454,6 @@
         </div>
     </div>
 
-    <!-- Cadenceur sur une seule ligne -->
     <div class="tempo-settings-inline">
         <h3>⏱️ Cadenceur :</h3>
         <div class="tempo-inputs">
@@ -425,24 +469,37 @@
     </div>
 </div>
 
-<div class="table-wrapper">
-    <table>
-        <thead>
-            <tr>
-                <th rowspan="2" style="width: 60px;">Heure</th>
-                <th rowspan="2" style="width: 210px;">Parties Démarrées</th>
-                <th colspan="7" class="section-fr-aller">Parcours France (Aller)</th>
-                <th colspan="9" class="section-it">Italie</th>
-                <th colspan="2" class="section-fr-retour">Retour France</th>
-            </tr>
-            <tr>
-                <th>F1</th><th>F2</th><th>F3</th><th>F4</th><th>F5</th><th>F6</th><th>F7</th>
-                <th>I1</th><th>I2</th><th>I3</th><th>I4</th><th>I5</th><th>I6</th><th>I7</th><th>I8</th><th>I9</th>
-                <th>F8</th><th>F9</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
+<!-- Barre de réglage spécifique du zoom du tableau -->
+<div class="zoom-controls-bar">
+    <label>🔎 Zoom Tableur :</label>
+    <div class="zoom-actions">
+        <button class="btn-zoom" onclick="changeZoom(-0.1)">➖</button>
+        <input type="range" id="zoomRange" class="zoom-slider" min="0.3" max="1.0" step="0.05" value="1.0" oninput="applyZoom(this.value)">
+        <button class="btn-zoom" onclick="changeZoom(0.1)">➕</button>
+        <button class="btn-zoom btn-zoom-reset" onclick="applyZoom(0.45)">🔍 Vue Globale</button>
+    </div>
+</div>
+
+<div class="table-wrapper-locked">
+    <div class="zoomable-table-container" id="zoomableContainer">
+        <table>
+            <thead>
+                <tr>
+                    <th rowspan="2" style="width: 50px;">Heure</th>
+                    <th rowspan="2" style="width: 140px;">Parties Démarrées</th>
+                    <th colspan="7" class="section-fr-aller">Parcours France (Aller)</th>
+                    <th colspan="9" class="section-it">Italie</th>
+                    <th colspan="2" class="section-fr-retour">Retour France</th>
+                </tr>
+                <tr>
+                    <th>F1</th><th>F2</th><th>F3</th><th>F4</th><th>F5</th><th>F6</th><th>F7</th>
+                    <th>I1</th><th>I2</th><th>I3</th><th>I4</th><th>I5</th><th>I6</th><th>I7</th><th>I8</th><th>I9</th>
+                    <th>F8</th><th>F9</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
 </div>
 
 <footer>
@@ -457,6 +514,7 @@
 <script>
     const START_HOUR = 8, END_HOUR = 19, INTERVAL = 10;
     let scheduleData = {};
+    let currentZoom = 1.0;
 
     const CONFLICT_COLORS = [
         '#FF0055', '#00E5FF', '#FFCC00', '#76FF03', '#FF6D00',
@@ -464,10 +522,10 @@
     ];
 
     const COURSE_OPTIONS = [
-        { code: '18_TRANS_FR', origin: 'FR', label: '18T Trans. (FR)' },
+        { code: '18_TRANS_FR', origin: 'FR', label: '18T Trans. FR' },
         { code: '2x9_FR',       origin: 'FR', label: '2x9 trous' },
         { code: '9_FR',        origin: 'FR', label: '9T France' },
-        { code: '18_TRANS_IT', origin: 'IT', label: '18T Trans. (IT)' },
+        { code: '18_TRANS_IT', origin: 'IT', label: '18T Trans. IT' },
         { code: '9_IT',        origin: 'IT', label: '9T Italie' }
     ];
 
@@ -482,8 +540,24 @@
         renderPlanning();
     });
 
+    function applyZoom(val) {
+        currentZoom = parseFloat(val);
+        currentZoom = Math.min(Math.max(currentZoom, 0.3), 1.0);
+        
+        const container = id('zoomableContainer');
+        container.style.transform = `scale(${currentZoom})`;
+        container.style.width = `${(100 / currentZoom)}%`;
+        id('zoomRange').value = currentZoom;
+    }
+
+    function changeZoom(delta) {
+        applyZoom(currentZoom + delta);
+    }
+
+    function id(elemId) { return document.getElementById(elemId); }
+
     function populateSlotWheel() {
-        const wheel = document.getElementById('slotWheel');
+        const wheel = id('slotWheel');
         wheel.innerHTML = '';
         for (let h = START_HOUR; h <= END_HOUR; h++) {
             for (let m = 0; m < 60; m += INTERVAL) {
@@ -509,8 +583,8 @@
     }
 
     function saveTempoSettings() {
-        const tFR = document.getElementById('timeFR').value;
-        const tIT = document.getElementById('timeIT').value;
+        const tFR = id('timeFR').value;
+        const tIT = id('timeIT').value;
         localStorage.setItem('golf_tempo_settings', JSON.stringify({ tFR, tIT }));
     }
 
@@ -519,8 +593,8 @@
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
-                if(parsed.tFR) document.getElementById('timeFR').value = parsed.tFR;
-                if(parsed.tIT) document.getElementById('timeIT').value = parsed.tIT;
+                if(parsed.tFR) id('timeFR').value = parsed.tFR;
+                if(parsed.tIT) id('timeIT').value = parsed.tIT;
             } catch(e){}
         }
     }
@@ -537,8 +611,8 @@
     }
 
     function calculatePassages(courseCode, startTime) {
-        const tFR = parseInt(document.getElementById('timeFR').value) || 10;
-        const tIT = parseInt(document.getElementById('timeIT').value) || 10;
+        const tFR = parseInt(id('timeFR').value) || 10;
+        const tIT = parseInt(id('timeIT').value) || 10;
 
         let p = {};
         let t = startTime;
@@ -585,8 +659,8 @@
     }
 
     function addSelectedSlot() {
-        const dateKey = document.getElementById('currentDate').value;
-        const slot = document.getElementById('slotWheel').value;
+        const dateKey = id('currentDate').value;
+        const slot = id('slotWheel').value;
 
         if (!scheduleData[dateKey]) scheduleData[dateKey] = {};
         if (!scheduleData[dateKey][slot]) {
@@ -606,12 +680,12 @@
     }
 
     function renderPlanning() {
-        const dateKey = document.getElementById('currentDate').value;
+        const dateKey = id('currentDate').value;
         if (!scheduleData[dateKey]) scheduleData[dateKey] = {};
         const currentData = scheduleData[dateKey];
         
         const slots = Object.keys(currentData).sort();
-        const tbody = document.getElementById('tableBody');
+        const tbody = id('tableBody');
         tbody.innerHTML = '';
 
         if (slots.length === 0) {
@@ -690,7 +764,7 @@
                 html += `
                     <div class="departure-card origin-${dep.origin} ${dep.hasBuggy ? 'has-buggy' : ''}">
                         <div class="badge-container">
-                            <span class="origin-badge origin-${dep.origin}">Départ ${dep.origin}</span>
+                            <span class="origin-badge origin-${dep.origin}">Dép. ${dep.origin}</span>
                             <button class="btn-action btn-remove" onclick="removeDep('${dateKey}','${slot}',${idx})">❌</button>
                         </div>
                         <div class="card-row">
@@ -722,7 +796,7 @@
             html += `
                 <div style="display:flex; justify-content:center;">
                     <button class="btn-add-main" ${isFull ? 'disabled title="Max 2 parties"' : ''} onclick="addDep('${dateKey}','${slot}')">
-                        ${isFull ? 'Complet (2/2)' : '+ Partie'}
+                        ${isFull ? 'Complet' : '+ Partie'}
                     </button>
                 </div>
             </td>`;
@@ -756,7 +830,7 @@
                     
                     html += `
                         <span class="passage-item item-origin-${item.origin}" style="${cellStyle}">
-                            ${item.hasBuggy ? '🛺 ' : ''}${item.passageTime}
+                            ${item.hasBuggy ? '🛺' : ''}${item.passageTime}
                         </span>
                     `;
                 });
@@ -818,7 +892,7 @@
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(scheduleData, null, 2));
         const downloadAnchor = document.createElement('a');
         downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", `planning_golf_${document.getElementById('currentDate').value}.json`);
+        downloadAnchor.setAttribute("download", `planning_golf_${id('currentDate').value}.json`);
         document.body.appendChild(downloadAnchor);
         downloadAnchor.click();
         downloadAnchor.remove();
@@ -844,7 +918,7 @@
                     
                     const firstImportedDate = Object.keys(importedData)[0];
                     if (firstImportedDate) {
-                        document.getElementById('currentDate').value = firstImportedDate;
+                        id('currentDate').value = firstImportedDate;
                     }
                     parsed = true;
                 } catch(jsonErr) {
@@ -909,7 +983,7 @@
         });
 
         if (lastDateFound) {
-            document.getElementById('currentDate').value = lastDateFound;
+            id('currentDate').value = lastDateFound;
         }
 
         return count > 0;
