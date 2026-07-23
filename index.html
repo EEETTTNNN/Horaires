@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Planning Golf MTG v.1.8</title>
+    <title>Planning Golf MTG v.1.9</title>
     <style>
         :root {
             --primary-color: #1b4332;
@@ -408,7 +408,7 @@
 
 <header>
     <h1>Planning Golf MTG</h1>
-    <span class="version-badge">v.1.8</span>
+    <span class="version-badge">v.1.9</span>
 </header>
 
 <div class="controls-panel">
@@ -421,7 +421,7 @@
         <div class="add-slot-group">
             <label for="slotWheel">Créneau :</label>
             <select id="slotWheel"></select>
-            <button class="btn-add-slot" onclick="addSelectedSlot()">➕ Ajouter</button>
+            <button class="btn-add-slot" id="btnAddSlot">➕ Ajouter</button>
         </div>
     </div>
 
@@ -491,20 +491,33 @@
         { code: '9_IT',        origin: 'IT', label: '9T Italie' }
     ];
 
+    function id(elemId) { return document.getElementById(elemId); }
+
+    function getCurrentDateKey() {
+        const dateInput = id('currentDate');
+        if (dateInput && dateInput.value) {
+            return dateInput.value;
+        }
+        const today = new Date().toISOString().split('T')[0];
+        if (dateInput) dateInput.value = today;
+        return today;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         populateSlotWheel();
         loadTempoSettings();
         loadLocalStorage();
         
-        const dateInput = document.getElementById('currentDate');
+        const dateInput = id('currentDate');
         if (!dateInput.value) {
             dateInput.value = new Date().toISOString().split('T')[0];
         }
         dateInput.addEventListener('change', renderPlanning);
+        
+        id('btnAddSlot').addEventListener('click', addSelectedSlot);
+        
         renderPlanning();
     });
-
-    function id(elemId) { return document.getElementById(elemId); }
 
     function populateSlotWheel() {
         const wheel = id('slotWheel');
@@ -609,10 +622,9 @@
     }
 
     function addSelectedSlot() {
-        const dateKey = id('currentDate').value;
-        const slot = id('slotWheel').value;
-
-        if (!dateKey || !slot) return;
+        const dateKey = getCurrentDateKey();
+        const slotSelect = id('slotWheel');
+        const slot = slotSelect.value;
 
         if (!scheduleData[dateKey]) {
             scheduleData[dateKey] = {};
@@ -622,7 +634,7 @@
             scheduleData[dateKey][slot] = [];
         }
 
-        // Si le créneau n'a aucune partie, on en ajoute une par défaut
+        // Si le créneau est vide, on y met immédiatement une partie France
         if (scheduleData[dateKey][slot].length === 0) {
             scheduleData[dateKey][slot].push({ 
                 courseCode: '18_TRANS_FR', 
@@ -630,6 +642,11 @@
                 players: 2, 
                 hasBuggy: false 
             });
+        }
+
+        // Fait passer la molette au créneau suivant (+10min) automatiquement
+        if (slotSelect.selectedIndex < slotSelect.options.length - 1) {
+            slotSelect.selectedIndex += 1;
         }
 
         saveLocalStorage();
@@ -645,9 +662,7 @@
     }
 
     function resetCurrentDay() {
-        const dateKey = id('currentDate').value;
-        if (!dateKey) return;
-
+        const dateKey = getCurrentDateKey();
         const confirmReset = confirm(`Êtes-vous sûr de vouloir réinitialiser toutes les données pour la journée du ${dateKey} ?`);
         if (confirmReset) {
             if (scheduleData[dateKey]) {
@@ -659,9 +674,7 @@
     }
 
     function renderPlanning() {
-        const dateKey = id('currentDate').value;
-        
-        if (!dateKey) return;
+        const dateKey = getCurrentDateKey();
         
         if (!scheduleData[dateKey]) {
             scheduleData[dateKey] = {};
@@ -881,10 +894,11 @@
     };
 
     function exportData() {
+        const dateKey = getCurrentDateKey();
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(scheduleData, null, 2));
         const downloadAnchor = document.createElement('a');
         downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", `planning_golf_${id('currentDate').value}.json`);
+        downloadAnchor.setAttribute("download", `planning_golf_${dateKey}.json`);
         document.body.appendChild(downloadAnchor);
         downloadAnchor.click();
         downloadAnchor.remove();
@@ -929,7 +943,7 @@
                     renderPlanning();
                     alert("Fichier JSON importé avec succès !");
                 } else {
-                    alert("Format JSON non reconnu. Le fichier doit contenir un objet de dates.");
+                    alert("Format JSON non reconnu.");
                 }
 
             } catch(err) {
@@ -937,10 +951,6 @@
             }
             
             event.target.value = '';
-        };
-
-        reader.onerror = function() {
-            alert("Erreur lors de la lecture du fichier sur votre appareil.");
         };
 
         reader.readAsText(file);
