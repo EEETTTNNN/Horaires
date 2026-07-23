@@ -2,8 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Planning Golf MTG v.1.2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Planning Golf MTG v.1.3</title>
     <style>
         :root {
             --primary-color: #1b4332;
@@ -23,15 +23,14 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            padding: 8px;
+            padding: 6px;
             line-height: 1.2;
-            touch-action: manipulation;
         }
 
         header {
             background-color: var(--primary-color);
             color: white;
-            padding: 12px 15px;
+            padding: 10px 12px;
             border-radius: 8px;
             text-align: center;
             margin-bottom: 8px;
@@ -40,7 +39,7 @@
         }
 
         header h1 { 
-            font-size: 22px; 
+            font-size: 20px; 
             font-weight: 800;
             white-space: nowrap;
             letter-spacing: 0.5px;
@@ -168,7 +167,7 @@
         }
 
         .tempo-field input[type="number"] {
-            width: 40px;
+            width: 36px;
             padding: 2px;
             border: 1px solid var(--border-color);
             border-radius: 4px;
@@ -177,101 +176,59 @@
             font-size: 10px;
         }
 
-        /* Barre de contrôle du zoom spécifique au tableau */
-        .zoom-controls-bar {
-            background: #e2e8f0;
-            padding: 6px 10px;
-            border-radius: 6px 6px 0 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            border: 1px solid var(--border-color);
-            border-bottom: none;
-        }
-
-        .zoom-controls-bar label {
-            font-size: 11px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .zoom-actions {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-zoom {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn-zoom-reset {
-            background-color: #0d1b2a;
-        }
-
-        .zoom-slider {
-            width: 90px;
-        }
-
-        /* Conteneur fixe, bloqué contre le swipe */
-        .table-wrapper-locked {
+        /* Cadre du tableur sans défilement superflu */
+        .table-wrapper {
             background: var(--card-bg);
-            border-radius: 0 0 8px 8px;
-            overflow: hidden; /* Désactive le défilement et le swipe */
+            border-radius: 8px;
+            overflow: hidden;
             border: 1px solid var(--border-color);
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             margin-bottom: 10px;
             width: 100%;
         }
 
-        /* Zone zoomable en CSS scale */
-        .zoomable-table-container {
-            transform-origin: top left;
-            transition: transform 0.15s ease-out;
-            width: 100%;
-        }
-
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10px;
+            font-size: 8px;
             table-layout: fixed;
         }
 
         th, td {
             border: 1px solid var(--border-color);
-            padding: 2px 1px;
+            padding: 1px;
             text-align: center;
             vertical-align: middle;
             background-color: #ffffff;
             word-wrap: break-word;
         }
 
-        th { background-color: var(--secondary-color); color: white; font-weight: 600; font-size: 9px; }
+        th { 
+            background-color: var(--secondary-color); 
+            color: white; 
+            font-weight: 600; 
+            font-size: 7.5px;
+            padding: 2px 0;
+        }
+        
         th.section-fr-aller { background-color: var(--badge-fr); }
         th.section-it { background-color: var(--badge-it); }
         th.section-fr-retour { background-color: #0d1b2a; }
 
         .time-col-cell {
             background-color: #e9ecef;
-            width: 45px;
-            padding: 2px;
+            width: 32px;
+            padding: 1px;
         }
 
         .time-header {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 8px;
+            gap: 1px;
         }
 
         .btn-delete-slot {
@@ -279,24 +236,25 @@
             border: none;
             color: #dc3545;
             cursor: pointer;
-            font-size: 9px;
+            font-size: 8px;
             padding: 0;
+            line-height: 1;
         }
 
         .departure-card {
             background: #fff;
             border: 1px solid var(--border-color);
-            border-radius: 3px;
-            padding: 2px;
+            border-radius: 2px;
+            padding: 1px;
             margin-bottom: 2px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 1px;
         }
 
-        .departure-card.origin-FR { border-left: 3px solid var(--badge-fr); }
-        .departure-card.origin-IT { border-left: 3px solid var(--badge-it); }
+        .departure-card.origin-FR { border-left: 2px solid var(--badge-fr); }
+        .departure-card.origin-IT { border-left: 2px solid var(--badge-it); }
 
         .departure-card.has-buggy {
             background-color: var(--buggy-bg);
@@ -305,10 +263,10 @@
         .badge-container { display: flex; align-items: center; justify-content: space-between; }
 
         .origin-badge {
-            font-size: 7px;
+            font-size: 6px;
             font-weight: bold;
             color: white;
-            padding: 1px 2px;
+            padding: 1px;
             border-radius: 2px;
             text-transform: uppercase;
         }
@@ -321,7 +279,7 @@
             display: flex;
             align-items: center;
             gap: 1px;
-            font-size: 8px;
+            font-size: 7px;
             font-weight: bold;
             cursor: pointer;
             background: #f8f9fa;
@@ -331,23 +289,25 @@
         }
 
         select {
-            padding: 1px;
+            padding: 0;
             border-radius: 2px;
             border: 1px solid var(--border-color);
-            font-size: 8px;
+            font-size: 7px;
             background: white;
+            max-width: 100%;
         }
 
-        .btn-action { background: none; border: none; cursor: pointer; font-size: 9px; }
+        .btn-action { background: none; border: none; cursor: pointer; font-size: 8px; }
         .btn-add-main {
             background-color: #28a745;
             color: white;
             border: none;
-            padding: 2px 4px;
-            border-radius: 3px;
+            padding: 2px 3px;
+            border-radius: 2px;
             font-weight: bold;
-            font-size: 9px;
+            font-size: 7px;
             cursor: pointer;
+            width: 100%;
         }
         .btn-add-main:disabled {
             background-color: #ccc;
@@ -358,14 +318,15 @@
         .passage-item {
             display: block;
             font-family: monospace;
-            font-size: 9px;
+            font-size: 7px;
             font-weight: bold;
-            padding: 2px 1px;
+            padding: 1px 0;
             margin: 1px 0;
             border-radius: 2px;
             background-color: #ffffff;
             border: 1px solid #ced4da;
             color: #000;
+            white-space: nowrap;
         }
 
         .passage-item.item-origin-FR {
@@ -387,20 +348,20 @@
 
         footer {
             background: var(--card-bg);
-            padding: 10px;
+            padding: 8px;
             border-radius: 8px;
             margin-top: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
             justify-content: space-between;
         }
 
         .import-export-area {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
         }
 
@@ -408,9 +369,9 @@
             background-color: #4a5568;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 4px 8px;
             border-radius: 4px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: bold;
             cursor: pointer;
         }
@@ -419,17 +380,16 @@
             background-color: var(--secondary-color); 
             color: white; 
             border: none;
-            padding: 5px 10px; 
+            padding: 4px 8px; 
             border-radius: 4px; 
             cursor: pointer; 
             font-weight: bold; 
-            font-size: 11px;
+            font-size: 10px;
         }
 
         @media print {
-            .controls-panel, .zoom-controls-bar, .btn-action, .btn-add-main, footer, .btn-delete-slot { display: none !important; }
+            .controls-panel, .btn-action, .btn-add-main, footer, .btn-delete-slot { display: none !important; }
             body { padding: 0; }
-            .zoomable-table-container { transform: scale(1) !important; width: 100% !important; }
         }
     </style>
 </head>
@@ -437,7 +397,7 @@
 
 <header>
     <h1>Planning Golf MTG</h1>
-    <span class="version-badge">v.1.2</span>
+    <span class="version-badge">v.1.3</span>
 </header>
 
 <div class="controls-panel">
@@ -469,37 +429,24 @@
     </div>
 </div>
 
-<!-- Barre de réglage spécifique du zoom du tableau -->
-<div class="zoom-controls-bar">
-    <label>🔎 Zoom Tableur :</label>
-    <div class="zoom-actions">
-        <button class="btn-zoom" onclick="changeZoom(-0.1)">➖</button>
-        <input type="range" id="zoomRange" class="zoom-slider" min="0.3" max="1.0" step="0.05" value="1.0" oninput="applyZoom(this.value)">
-        <button class="btn-zoom" onclick="changeZoom(0.1)">➕</button>
-        <button class="btn-zoom btn-zoom-reset" onclick="applyZoom(0.45)">🔍 Vue Globale</button>
-    </div>
-</div>
-
-<div class="table-wrapper-locked">
-    <div class="zoomable-table-container" id="zoomableContainer">
-        <table>
-            <thead>
-                <tr>
-                    <th rowspan="2" style="width: 50px;">Heure</th>
-                    <th rowspan="2" style="width: 140px;">Parties Démarrées</th>
-                    <th colspan="7" class="section-fr-aller">Parcours France (Aller)</th>
-                    <th colspan="9" class="section-it">Italie</th>
-                    <th colspan="2" class="section-fr-retour">Retour France</th>
-                </tr>
-                <tr>
-                    <th>F1</th><th>F2</th><th>F3</th><th>F4</th><th>F5</th><th>F6</th><th>F7</th>
-                    <th>I1</th><th>I2</th><th>I3</th><th>I4</th><th>I5</th><th>I6</th><th>I7</th><th>I8</th><th>I9</th>
-                    <th>F8</th><th>F9</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-    </div>
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th rowspan="2" style="width: 32px;">H</th>
+                <th rowspan="2" style="width: 85px;">Parties Démarrées</th>
+                <th colspan="7" class="section-fr-aller">Parcours France (Aller)</th>
+                <th colspan="9" class="section-it">Italie</th>
+                <th colspan="2" class="section-fr-retour">Retour FR</th>
+            </tr>
+            <tr>
+                <th>F1</th><th>F2</th><th>F3</th><th>F4</th><th>F5</th><th>F6</th><th>F7</th>
+                <th>I1</th><th>I2</th><th>I3</th><th>I4</th><th>I5</th><th>I6</th><th>I7</th><th>I8</th><th>I9</th>
+                <th>F8</th><th>F9</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
 </div>
 
 <footer>
@@ -514,7 +461,6 @@
 <script>
     const START_HOUR = 8, END_HOUR = 19, INTERVAL = 10;
     let scheduleData = {};
-    let currentZoom = 1.0;
 
     const CONFLICT_COLORS = [
         '#FF0055', '#00E5FF', '#FFCC00', '#76FF03', '#FF6D00',
@@ -539,20 +485,6 @@
         dateInput.addEventListener('change', renderPlanning);
         renderPlanning();
     });
-
-    function applyZoom(val) {
-        currentZoom = parseFloat(val);
-        currentZoom = Math.min(Math.max(currentZoom, 0.3), 1.0);
-        
-        const container = id('zoomableContainer');
-        container.style.transform = `scale(${currentZoom})`;
-        container.style.width = `${(100 / currentZoom)}%`;
-        id('zoomRange').value = currentZoom;
-    }
-
-    function changeZoom(delta) {
-        applyZoom(currentZoom + delta);
-    }
 
     function id(elemId) { return document.getElementById(elemId); }
 
