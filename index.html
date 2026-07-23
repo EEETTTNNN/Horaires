@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Planning Golf MTG v.1.6</title>
+    <title>Planning Golf MTG v.1.7</title>
     <style>
         :root {
             --primary-color: #1b4332;
@@ -408,7 +408,7 @@
 
 <header>
     <h1>Planning Golf MTG</h1>
-    <span class="version-badge">v.1.6</span>
+    <span class="version-badge">v.1.7</span>
 </header>
 
 <div class="controls-panel">
@@ -611,8 +611,19 @@
         const slot = id('slotWheel').value;
 
         if (!scheduleData[dateKey]) scheduleData[dateKey] = {};
+        
+        // Si le créneau n'existe pas ou s'il est vide, on ajoute automatiquement une 1ère partie
         if (!scheduleData[dateKey][slot]) {
             scheduleData[dateKey][slot] = [];
+        }
+
+        if (scheduleData[dateKey][slot].length === 0) {
+            scheduleData[dateKey][slot].push({ 
+                courseCode: '18_TRANS_FR', 
+                origin: 'FR', 
+                players: 2, 
+                hasBuggy: false 
+            });
         }
 
         saveLocalStorage();
