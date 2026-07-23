@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Planning Golf MTG v.1.7</title>
+    <title>Planning Golf MTG v.1.8</title>
     <style>
         :root {
             --primary-color: #1b4332;
@@ -408,7 +408,7 @@
 
 <header>
     <h1>Planning Golf MTG</h1>
-    <span class="version-badge">v.1.7</span>
+    <span class="version-badge">v.1.8</span>
 </header>
 
 <div class="controls-panel">
@@ -497,7 +497,9 @@
         loadLocalStorage();
         
         const dateInput = document.getElementById('currentDate');
-        dateInput.value = new Date().toISOString().split('T')[0];
+        if (!dateInput.value) {
+            dateInput.value = new Date().toISOString().split('T')[0];
+        }
         dateInput.addEventListener('change', renderPlanning);
         renderPlanning();
     });
@@ -610,13 +612,17 @@
         const dateKey = id('currentDate').value;
         const slot = id('slotWheel').value;
 
-        if (!scheduleData[dateKey]) scheduleData[dateKey] = {};
+        if (!dateKey || !slot) return;
+
+        if (!scheduleData[dateKey]) {
+            scheduleData[dateKey] = {};
+        }
         
-        // Si le créneau n'existe pas ou s'il est vide, on ajoute automatiquement une 1ère partie
         if (!scheduleData[dateKey][slot]) {
             scheduleData[dateKey][slot] = [];
         }
 
+        // Si le créneau n'a aucune partie, on en ajoute une par défaut
         if (scheduleData[dateKey][slot].length === 0) {
             scheduleData[dateKey][slot].push({ 
                 courseCode: '18_TRANS_FR', 
@@ -654,9 +660,14 @@
 
     function renderPlanning() {
         const dateKey = id('currentDate').value;
-        if (!scheduleData[dateKey]) scheduleData[dateKey] = {};
-        const currentData = scheduleData[dateKey];
         
+        if (!dateKey) return;
+        
+        if (!scheduleData[dateKey]) {
+            scheduleData[dateKey] = {};
+        }
+
+        const currentData = scheduleData[dateKey];
         const slots = Object.keys(currentData).sort();
         const tbody = id('tableBody');
         tbody.innerHTML = '';
@@ -817,6 +828,7 @@
     }
 
     window.addDep = function(dateKey, slot) {
+        if (!scheduleData[dateKey]) scheduleData[dateKey] = {};
         if (!scheduleData[dateKey][slot]) scheduleData[dateKey][slot] = [];
         if (scheduleData[dateKey][slot].length >= 2) return;
 
@@ -840,14 +852,19 @@
     };
 
     window.removeDep = function(dateKey, slot, idx) {
-        scheduleData[dateKey][slot].splice(idx, 1);
-        saveLocalStorage();
-        renderPlanning();
+        if (scheduleData[dateKey] && scheduleData[dateKey][slot]) {
+            scheduleData[dateKey][slot].splice(idx, 1);
+            if (scheduleData[dateKey][slot].length === 0) {
+                delete scheduleData[dateKey][slot];
+            }
+            saveLocalStorage();
+            renderPlanning();
+        }
     };
 
     window.changeCourse = function(dateKey, slot, idx, newCourseCode) {
         const course = COURSE_OPTIONS.find(c => c.code === newCourseCode);
-        if (course) {
+        if (course && scheduleData[dateKey] && scheduleData[dateKey][slot] && scheduleData[dateKey][slot][idx]) {
             scheduleData[dateKey][slot][idx].courseCode = course.code;
             scheduleData[dateKey][slot][idx].origin = course.origin;
             saveLocalStorage();
@@ -856,9 +873,11 @@
     };
 
     window.updateDep = function(dateKey, slot, idx, field, val) {
-        scheduleData[dateKey][slot][idx][field] = val;
-        saveLocalStorage();
-        renderPlanning();
+        if (scheduleData[dateKey] && scheduleData[dateKey][slot] && scheduleData[dateKey][slot][idx]) {
+            scheduleData[dateKey][slot][idx][field] = val;
+            saveLocalStorage();
+            renderPlanning();
+        }
     };
 
     function exportData() {
